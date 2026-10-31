@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand: keep in Latin script in every language. -->
-    <string name="app_name" translatable="false">SaralFileManager</string>
+    <string name="app_name" translatable="false">Saral File Manager</string>
 
     <!-- Shared -->
     <string name="back">Back</string>
@@ -24,10 +24,10 @@
 
     <!-- Storage access -->
     <string name="permission_title">Allow access to your files</string>
-    <string name="permission_body_all_files">SaralFileManager needs \"All files access\" to show, copy, move and delete your files and folders. Tap Allow, then turn on the switch for SaralFileManager.</string>
-    <string name="permission_body">SaralFileManager needs access to your phone\'s storage to show, copy, move and delete your files and folders.</string>
+    <string name="permission_body_all_files">Saral File Manager needs \"All files access\" to show, copy, move and delete your files and folders. Tap Allow, then turn on the switch for Saral File Manager.</string>
+    <string name="permission_body">Saral File Manager needs access to your phone\'s storage to show, copy, move and delete your files and folders.</string>
     <string name="permission_allow">Allow</string>
-    <string name="permission_privacy">Your files stay on your phone. SaralFileManager has no internet access.</string>
+    <string name="permission_privacy">Your files stay on your phone. Saral File Manager has no internet access.</string>
 
     <!-- Home -->
     <string name="section_storage">Storage</string>
@@ -52,12 +52,12 @@
     <string name="category_recent">Recent files</string>
     <string name="category_empty">No files here yet.</string>
     <string name="update_ready_title">Update ready</string>
-    <string name="update_ready">A new version of SaralFileManager has been downloaded. Restart to use it.</string>
+    <string name="update_ready">A new version of Saral File Manager has been downloaded. Restart to use it.</string>
     <string name="update_restart">Restart</string>
-    <string name="rate_app">Rate SaralFileManager</string>
+    <string name="rate_app">Rate Saral File Manager</string>
     <string name="source_code">Source code on GitHub</string>
     <string name="privacy_policy">Privacy policy</string>
-    <string name="about_version">SaralFileManager %1$s by Saral Techies</string>
+    <string name="about_version">Saral File Manager %1$s by Saral Techies</string>
     <string name="more_apps_title">More from Saral Techies</string>
     <string name="more_saralreader">SaralReader: PDF &amp; highlights</string>
     <string name="more_saralreader_summary">Read, highlight and scan PDFs</string>

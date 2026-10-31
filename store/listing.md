@@ -1,4 +1,4 @@
-# SaralFileManager – Google Play store listing (en-IN / en-US)
+# Saral File Manager – Google Play store listing (en-IN / en-US)
 
 Every claim below matches the code as of 1.0.0. Re-check before each release.
 
@@ -6,10 +6,10 @@ Every claim below matches the code as of 1.0.0. Re-check before each release.
 Saral File Manager
 
 ## Short description (max 80)
-Simple, private file manager: copy, move, zip, search. No ads, no internet.
+Simple, private file manager: copy, move, zip and search your files offline.
 
 ## Full description (max 4000)
-SaralFileManager is a simple, private file manager from Saral Techies. Browse your phone's storage, SD card and USB drives, copy and move files, make and open zip files, find anything with search, and clean up what you don't need. There are no ads, you don't need an account, and the app doesn't even have internet access, so your files never leave your phone. It's free and open source.
+Saral File Manager is a simple, private file manager from Saral Techies. Browse your phone's storage, SD card and USB drives, copy and move files, make and open zip files, find anything with search, and clean up what you don't need. There are no ads, you don't need an account, and the app doesn't even have internet access, so your files never leave your phone. It's free and open source.
 
 SEE EVERYTHING AT A GLANCE
 • Internal storage, SD card and USB drives, with how much space is used
