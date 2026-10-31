@@ -2,7 +2,7 @@
 
 Please don't report security problems in public issues.
 
-Email **support@saraltechies.com** with the subject "SaralFileManager security", or use GitHub's
+Email **support@saraltechies.com** with the subject "Saral File Manager security", or use GitHub's
 [private vulnerability reporting](https://github.com/saraltechies/saralfilemanager/security/advisories/new).
 Include the app version, your Android version and steps to reproduce.
 

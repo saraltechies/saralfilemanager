@@ -1,4 +1,4 @@
-# Contributing to SaralFileManager
+# Contributing to Saral File Manager
 
 Thanks for helping. A few things keep the app simple and trustworthy:
 
@@ -17,7 +17,7 @@ Thanks for helping. A few things keep the app simple and trustworthy:
 
 ## Translations
 
-Translations are welcome as `app/src/main/res/values-<language>/strings.xml`. Keep the brand name `SaralFileManager` in Latin script.
+Translations are welcome as `app/src/main/res/values-<language>/strings.xml`. Keep the brand name `Saral File Manager` in Latin script.
 
 ## License
 

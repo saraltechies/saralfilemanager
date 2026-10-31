@@ -1,4 +1,4 @@
-# SaralFileManager
+# Saral File Manager
 
 A simple, private file manager for Android by [Saral Techies](https://saraltechies.com/).
 Free and open source (GPL-3.0). No ads, no account, and no internet permission: your files never leave your phone.
@@ -72,8 +72,8 @@ Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBU
 
 Copyright © 2026 Saral Techies.
 
-SaralFileManager is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+Saral File Manager is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, version 3 or (at your option) any later version. See [LICENSE](LICENSE).
 
-The "SaralFileManager" and "Saral Techies" names and the app icon are trademarks of Saral Techies and aren't covered by the license.
+The "Saral File Manager" and "Saral Techies" names and the app icon are trademarks of Saral Techies and aren't covered by the license.
 If you publish a modified version, please give it a different name and icon.
