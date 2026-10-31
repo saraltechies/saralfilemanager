@@ -1,0 +1,246 @@
+<!doctype html>
+<!--
+  Source for the SaralFileManager Play Store graphics. Render each view with headless Chrome:
+    chrome --headless=new --hide-scrollbars --window-size=W,H --screenshot=out.png "file:///.../store.html#view"
+  Views: icon (512x512), feature (1024x500), s1..s5 (1080x1920 phone screenshots). See render.sh.
+  The phone screens are drawings of the app's real layouts (home, folder, selection, zip, dark theme). Replace them with
+  real captures before the Production release (see store/listing.md).
+  The folder mark is the launcher icon (res/drawable/ic_launcher_foreground.xml) drawn as SVG.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0&display=block" rel="stylesheet">
+<style>
+  :root { --blue:#0D6EFD; --navy:#0D1B4A; --amber:#FFC107; --ink:#1A1A2E; --slate:#64748B; --mist:#F0F6FF; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { font-family:Roboto, sans-serif; overflow:hidden; }
+  .view { display:none; }
+  .ms { font-family:'Material Symbols Rounded'; font-weight:normal; font-style:normal; line-height:1; letter-spacing:normal;
+        text-transform:none; display:inline-block; white-space:nowrap; font-feature-settings:'liga'; -webkit-font-smoothing:antialiased; }
+
+  #icon { width:512px; height:512px; background:var(--blue); }
+  #icon svg { width:512px; height:512px; display:block; }
+
+  #feature { width:1024px; height:500px; position:relative; overflow:hidden; color:#fff;
+             background:linear-gradient(120deg, var(--navy) 0%, #11307f 55%, var(--blue) 100%); }
+  #feature .txt { position:absolute; left:64px; top:84px; width:600px; }
+  #feature .brand { display:flex; align-items:center; gap:20px; }
+  #feature .brand svg { width:92px; height:92px; border-radius:22px; background:var(--blue); box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  #feature h1 { font-size:52px; font-weight:900; letter-spacing:-1px; }
+  #feature p { margin-top:26px; font-size:29px; line-height:1.3; font-weight:500; color:#DCE8FF; }
+  #feature .chips { margin-top:28px; display:flex; gap:10px; flex-wrap:wrap; }
+  #feature .chip { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:8px 16px; font-size:19px; font-weight:500; }
+  #feature .by { position:absolute; left:64px; bottom:30px; font-size:17px; color:#93C5FD; }
+  #feature .stack { position:absolute; right:70px; top:70px; width:270px; }
+  #feature .card { background:#fff; color:var(--ink); border-radius:16px; padding:14px 16px; display:flex; align-items:center; gap:14px;
+                   box-shadow:0 18px 40px rgba(0,0,0,.35); margin-bottom:14px; font-size:19px; font-weight:500; }
+  #feature .card .b { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; }
+  #feature .card small { display:block; font-size:14px; color:var(--slate); font-weight:400; margin-top:2px; }
+
+  /* ---------- phone screenshots ---------- */
+  .shot { width:1080px; height:1920px; position:relative; overflow:hidden; color:#fff;
+          background:linear-gradient(170deg, var(--navy) 0%, #12307c 45%, var(--blue) 100%); }
+  .shot .cap { position:absolute; top:100px; left:70px; right:70px; text-align:center; }
+  .shot .cap h2 { font-size:70px; font-weight:900; line-height:1.08; letter-spacing:-1px; }
+  .shot .cap p { margin-top:22px; font-size:36px; color:#DCE8FF; font-weight:500; }
+  .shot .phone { position:absolute; left:150px; top:430px; width:780px; height:1603px; border-radius:64px; background:#0b0f1e;
+                 padding:20px; box-shadow:0 30px 80px rgba(0,0,0,.45); }
+  .scr { width:740px; height:1563px; border-radius:46px; overflow:hidden; background:#F8FAFF; color:var(--ink); position:relative; font-size:26px; }
+  .scr.dark { background:#0B1230; color:#E2E8F0; }
+  .status { height:56px; padding:0 34px; display:flex; align-items:center; justify-content:space-between; font-size:22px; font-weight:500; }
+  .bar { height:100px; padding:0 18px 0 30px; display:flex; align-items:center; gap:22px; font-size:33px; font-weight:500; }
+  .bar .sp { flex:1; }
+  .bar .ms { font-size:38px; }
+  .bar.sel { background:#DCE8FF; }
+  .dark .bar.sel { background:#0A58CA; }
+  .crumbs { padding:6px 30px 16px; font-size:23px; color:var(--slate); display:flex; gap:10px; align-items:center; border-bottom:1px solid #E2E8F0; }
+  .crumbs b { color:var(--blue); font-weight:500; }
+  .sec { padding:26px 32px 12px; font-size:23px; font-weight:700; color:var(--blue); }
+  .dark .sec { color:#6EA8FE; }
+  .vol { margin:6px 24px; background:var(--mist); border-radius:24px; padding:24px; display:flex; gap:22px; align-items:center; }
+  .dark .vol { background:#1A2550; }
+  .vol .c { width:62px; height:62px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:34px; }
+  .vol .t { flex:1; }
+  .vol .n { font-size:28px; font-weight:500; }
+  .vol .pb { height:8px; border-radius:4px; background:#CBD5E1; margin:12px 0 8px; overflow:hidden; }
+  .vol .pb i { display:block; height:100%; background:var(--blue); border-radius:4px; }
+  .vol small { font-size:20px; color:var(--slate); }
+  .tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; padding:4px 22px; }
+  .tile { border-radius:24px; padding:24px 6px; text-align:center; font-size:22px; font-weight:500; }
+  .tile .ms { font-size:44px; display:block; margin:0 auto 10px; }
+  .row { display:flex; align-items:center; gap:24px; padding:18px 30px; }
+  .row.on { background:#DCE8FF; }
+  .dark .row.on { background:#0A58CA; }
+  .row .ic { width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; flex:none; }
+  .row .ic.img { border-radius:50%; background-size:cover; }
+  .row .t { flex:1; min-width:0; }
+  .row .n { font-size:27px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row small { font-size:21px; color:var(--slate); }
+  .dark .row small, .dark .crumbs, .dark .vol small { color:#94A3B8; }
+  .dark .crumbs { border-color:#334155; }
+  .fab { position:absolute; right:34px; bottom:150px; width:110px; height:110px; border-radius:30px; background:#DCE8FF; color:var(--navy);
+         display:flex; align-items:center; justify-content:center; font-size:46px; box-shadow:0 6px 16px rgba(0,0,0,.18); }
+  .opbar { position:absolute; left:0; right:0; top:1290px; background:#E2E8F0; padding:24px 30px 40px; }
+  .dark .opbar { background:#1E2A55; }
+  .opbar .h { display:flex; align-items:center; justify-content:space-between; font-size:25px; font-weight:500; }
+  .opbar .h span { color:var(--blue); }
+  .opbar small { display:block; font-size:20px; color:var(--slate); margin-top:4px; }
+  .opbar .pb { height:8px; border-radius:4px; background:#CBD5E1; margin-top:16px; overflow:hidden; }
+  .opbar .pb i { display:block; height:100%; width:62%; background:var(--blue); }
+  .opbar .btn { background:var(--blue); color:#fff; border-radius:999px; padding:14px 28px; font-size:24px; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px 18px; }
+  .cell { text-align:center; font-size:19px; }
+  .cell .th { width:150px; height:150px; border-radius:22px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:62px; }
+  .dlg { position:absolute; left:60px; right:60px; top:520px; background:#fff; border-radius:40px; padding:44px 44px 30px; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+  .dlg h3 { font-size:34px; font-weight:500; margin-bottom:20px; }
+  .dlg p { font-size:25px; color:var(--slate); line-height:1.4; }
+  .dlg .acts { display:flex; justify-content:flex-end; gap:40px; margin-top:34px; font-size:26px; font-weight:500; color:var(--blue); }
+  .scrim { position:absolute; inset:0; background:rgba(13,27,74,.45); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <g id="mark">
+      <path fill="#FFC107" d="M33,35 H46 C47.5,35 48.5,35.6 49.4,36.6 L52.5,40 H75 C77.2,40 79,41.8 79,44 V70 C79,72.2 77.2,74 75,74 H33 C30.8,74 29,72.2 29,70 V39 C29,36.8 30.8,35 33,35 Z"/>
+      <path fill="#FFFFFF" d="M33,46 H75 C77.2,46 79,47.8 79,50 V70 C79,72.2 77.2,74 75,74 H33 C30.8,74 29,72.2 29,70 V50 C29,47.8 30.8,46 33,46 Z"/>
+      <path fill="none" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round" d="M37,56 H63 M37,64 H55"/>
+    </g>
+  </defs>
+</svg>
+
+<div id="icon" class="view">
+  <svg viewBox="18 18 72 72"><use href="#mark"/></svg>
+</div>
+
+<div id="feature" class="view">
+  <div class="txt">
+    <div class="brand"><svg viewBox="18 18 72 72"><use href="#mark"/></svg><h1>SaralFileManager</h1></div>
+    <p>Browse, copy, move and zip your files. Private, open source, no ads.</p>
+    <div class="chips">
+      <span class="chip">Zip &amp; unzip</span><span class="chip">SD card &amp; USB</span>
+      <span class="chip">Search</span><span class="chip">No internet</span>
+    </div>
+  </div>
+  <div class="by">by Saral Techies · saraltechies.com</div>
+  <div class="stack">
+    <div class="card"><span class="b ms" style="background:#DCE8FF;color:#0D6EFD">folder</span><div>Download<small>24 items</small></div></div>
+    <div class="card"><span class="b ms" style="background:#DCFCE7;color:#16A34A">image</span><div>Trip photos<small>186 items</small></div></div>
+    <div class="card"><span class="b ms" style="background:#F3E8FF;color:#9333EA">folder_zip</span><div>Project.zip<small>18.4 MB</small></div></div>
+    <div class="card"><span class="b ms" style="background:#DBEAFE;color:#0D6EFD">description</span><div>Invoice.pdf<small>412 KB</small></div></div>
+  </div>
+</div>
+
+<!-- s1: home -->
+<div id="s1" class="view shot">
+  <div class="cap"><h2>All your storage in one place</h2><p>Phone, SD card and USB, with space used</p></div>
+  <div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="ms">signal_cellular_alt wifi battery_full</span></div>
+    <div class="bar">SaralFileManager<span class="sp"></span><span class="ms">search</span><span class="ms">more_vert</span></div>
+    <div class="sec">Storage</div>
+    <div class="vol"><div class="c ms">phone_android</div><div class="t"><div class="n">Internal shared storage</div><div class="pb"><i style="width:58%"></i></div><small>74.3 GB used of 128 GB</small></div></div>
+    <div class="vol"><div class="c ms">sd_card</div><div class="t"><div class="n">SD card</div><div class="pb"><i style="width:31%"></i></div><small>19.8 GB used of 64 GB</small></div></div>
+    <div class="sec">Categories</div>
+    <div class="tiles">
+      <div class="tile" style="background:#E8F7EE"><span class="ms" style="color:#16A34A">image</span>Images</div>
+      <div class="tile" style="background:#FCE7F3"><span class="ms" style="color:#DB2777">movie</span>Videos</div>
+      <div class="tile" style="background:#FEF3C7"><span class="ms" style="color:#F59E0B">music_note</span>Audio</div>
+      <div class="tile" style="background:#DBEAFE"><span class="ms" style="color:#0D6EFD">description</span>Documents</div>
+      <div class="tile" style="background:#F3E8FF"><span class="ms" style="color:#9333EA">archive</span>Archives</div>
+      <div class="tile" style="background:#CCFBF1"><span class="ms" style="color:#0D9488">android</span>APKs</div>
+    </div>
+    <div class="sec">Quick access</div>
+    <div class="tiles">
+      <div class="tile" style="background:#DCE8FF"><span class="ms" style="color:#0D6EFD">download</span>Downloads</div>
+      <div class="tile" style="background:#DCE8FF"><span class="ms" style="color:#0D6EFD">photo_camera</span>Camera</div>
+      <div class="tile" style="background:#DCE8FF"><span class="ms" style="color:#0D6EFD">menu_book</span>Documents</div>
+    </div>
+    <div class="sec">Bookmarks</div>
+    <div class="row"><span class="ms" style="color:#0D6EFD;font-size:36px">bookmark</span><div class="t"><div class="n">Office</div><small>/Documents/Office</small></div></div>
+  </div></div>
+</div>
+
+<!-- s2: folder browser -->
+<div id="s2" class="view shot">
+  <div class="cap"><h2>Browse folder by folder</h2><p>List or grid, sorted the way you like</p></div>
+  <div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="ms">signal_cellular_alt wifi battery_full</span></div>
+    <div class="bar"><span class="ms">arrow_back</span>Download<span class="sp"></span><span class="ms">search</span><span class="ms">grid_view</span><span class="ms">more_vert</span></div>
+    <div class="crumbs">Internal storage <span class="ms">chevron_right</span> <b>Download</b></div>
+    <div class="row"><span class="ic ms" style="background:#DCE8FF;color:#0D6EFD">folder</span><div class="t"><div class="n">College notes</div><small>14 items · 28 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#DCE8FF;color:#0D6EFD">folder</span><div class="t"><div class="n">WhatsApp Documents</div><small>52 items · 30 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#DBEAFE;color:#0D6EFD">description</span><div class="t"><div class="n">Electricity bill October.pdf</div><small>212 KB · 30 Oct 2026</small></div></div>
+    <div class="row"><span class="ic img" style="background-image:linear-gradient(135deg,#F59E0B,#DB2777)"></span><div class="t"><div class="n">IMG_20261029_181204.jpg</div><small>3.4 MB · 29 Oct 2026</small></div></div>
+    <div class="row"><span class="ic img" style="background-image:linear-gradient(135deg,#16A34A,#0D6EFD)"></span><div class="t"><div class="n">Sunset at the lake.jpg</div><small>2.9 MB · 27 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#F3E8FF;color:#9333EA">archive</span><div class="t"><div class="n">Project files.zip</div><small>18.4 MB · 25 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#FCE7F3;color:#DB2777">movie</span><div class="t"><div class="n">Birthday video.mp4</div><small>146 MB · 22 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#FEF3C7;color:#F59E0B">music_note</span><div class="t"><div class="n">Voice note 12.m4a</div><small>840 KB · 20 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#CCFBF1;color:#0D9488">android</span><div class="t"><div class="n">app-release.apk</div><small>9.1 MB · 18 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#DBEAFE;color:#0D6EFD">description</span><div class="t"><div class="n">Resume 2026.docx</div><small>64 KB · 12 Oct 2026</small></div></div>
+    <div class="fab ms">create_new_folder</div>
+  </div></div>
+</div>
+
+<!-- s3: select + copy -->
+<div id="s3" class="view shot">
+  <div class="cap"><h2>Copy, move, share</h2><p>Long-press to pick many files at once</p></div>
+  <div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="ms">signal_cellular_alt wifi battery_full</span></div>
+    <div class="bar sel"><span class="ms">close</span>3 selected<span class="sp"></span><span class="ms">content_copy</span><span class="ms">content_cut</span><span class="ms">share</span><span class="ms">delete</span><span class="ms">more_vert</span></div>
+    <div class="crumbs">Internal storage <span class="ms">chevron_right</span> DCIM <span class="ms">chevron_right</span> <b>Camera</b></div>
+    <div class="grid">
+      <div class="cell"><div class="th ms" style="background:var(--blue);color:#fff">check_circle</div>IMG_1041.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#16A34A,#0D6EFD)"></div>IMG_1042.jpg</div>
+      <div class="cell"><div class="th ms" style="background:var(--blue);color:#fff">check_circle</div>IMG_1043.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#9333EA,#DB2777)"></div>IMG_1044.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#0D9488,#93C5FD)"></div>IMG_1045.jpg</div>
+      <div class="cell"><div class="th ms" style="background:var(--blue);color:#fff">check_circle</div>VID_1046.mp4</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#F59E0B,#16A34A)"></div>IMG_1047.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#0D1B4A,#0D6EFD)"></div>IMG_1048.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#DB2777,#FFC107)"></div>IMG_1049.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#64748B,#CBD5E1)"></div>IMG_1050.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#16A34A,#FFC107)"></div>IMG_1051.jpg</div>
+      <div class="cell"><div class="th" style="background:linear-gradient(135deg,#0D6EFD,#9333EA)"></div>IMG_1052.jpg</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- s4: zip -->
+<div id="s4" class="view shot">
+  <div class="cap"><h2>Zip and unzip</h2><p>Compress folders, extract zips in one tap</p></div>
+  <div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="ms">signal_cellular_alt wifi battery_full</span></div>
+    <div class="bar"><span class="ms">arrow_back</span>Documents<span class="sp"></span><span class="ms">search</span><span class="ms">grid_view</span><span class="ms">more_vert</span></div>
+    <div class="crumbs">Internal storage <span class="ms">chevron_right</span> <b>Documents</b></div>
+    <div class="row"><span class="ic ms" style="background:#DCE8FF;color:#0D6EFD">folder</span><div class="t"><div class="n">Office</div><small>31 items · 30 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#F3E8FF;color:#9333EA">archive</span><div class="t"><div class="n">Project files.zip</div><small>18.4 MB · 25 Oct 2026</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#DBEAFE;color:#0D6EFD">description</span><div class="t"><div class="n">Rent agreement.pdf</div><small>1.2 MB · 2 Oct 2026</small></div></div>
+    <div class="scrim"></div>
+    <div class="dlg"><h3>Project files.zip</h3><p>Extract this zip into a new folder here, or open it with another app.</p>
+      <div class="acts"><span>Open with</span><span>Extract here</span></div></div>
+  </div></div>
+</div>
+
+<!-- s5: dark + search -->
+<div id="s5" class="view shot">
+  <div class="cap"><h2>Find any file fast</h2><p>Search as you type, in light or dark theme</p></div>
+  <div class="phone"><div class="scr dark">
+    <div class="status"><span>9:41</span><span class="ms">signal_cellular_alt wifi battery_full</span></div>
+    <div class="bar"><span class="ms">arrow_back</span><span style="color:#E2E8F0">invoice</span><span class="sp"></span><span class="ms">close</span></div>
+    <div class="row"><span class="ic ms" style="background:#1E2A55;color:#6EA8FE">description</span><div class="t"><div class="n">Invoice 1042.pdf</div><small>/Download · 412 KB</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#1E2A55;color:#6EA8FE">description</span><div class="t"><div class="n">Invoice 1043.pdf</div><small>/Download · 388 KB</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#1E2A55;color:#6EA8FE">folder</span><div class="t"><div class="n">Invoices 2026</div><small>/Documents/Office</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#1E2A55;color:#6EA8FE">description</span><div class="t"><div class="n">Invoice template.docx</div><small>/Documents/Office · 48 KB</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#3B1F4F;color:#C084FC">archive</span><div class="t"><div class="n">Invoices backup.zip</div><small>/Documents · 6.2 MB</small></div></div>
+    <div class="row"><span class="ic ms" style="background:#1E2A55;color:#6EA8FE">description</span><div class="t"><div class="n">Invoice March.xlsx</div><small>/WhatsApp Documents · 22 KB</small></div></div>
+  </div></div>
+</div>
+
+<script>
+  const id = location.hash.slice(1) || 'icon';
+  document.getElementById(id).style.display = 'block';
+</script>
+</body>
+</html>

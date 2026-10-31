@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand: keep in Latin script in every language. -->
+    <string name="app_name" translatable="false">SaralFileManager</string>
+
+    <!-- Shared -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="done">Done</string>
+    <string name="create">Create</string>
+    <string name="open">Open</string>
+    <string name="more_options">More options</string>
+    <string name="search">Search</string>
+    <string name="folder">Folder</string>
+    <plurals name="item_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <plurals name="file_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+
+    <!-- Storage access -->
+    <string name="permission_title">Allow access to your files</string>
+    <string name="permission_body_all_files">SaralFileManager needs \"All files access\" to show, copy, move and delete your files and folders. Tap Allow, then turn on the switch for SaralFileManager.</string>
+    <string name="permission_body">SaralFileManager needs access to your phone\'s storage to show, copy, move and delete your files and folders.</string>
+    <string name="permission_allow">Allow</string>
+    <string name="permission_privacy">Your files stay on your phone. SaralFileManager has no internet access.</string>
+
+    <!-- Home -->
+    <string name="section_storage">Storage</string>
+    <string name="section_categories">Categories</string>
+    <string name="section_quick_access">Quick access</string>
+    <string name="section_bookmarks">Bookmarks</string>
+    <string name="section_recent">Recent files</string>
+    <string name="see_all">See all</string>
+    <!-- %1$s used, %2$s total, e.g. "23.4 GB used of 64 GB". -->
+    <string name="storage_usage">%1$s used of %2$s</string>
+    <string name="folder_downloads">Downloads</string>
+    <string name="folder_camera">Camera</string>
+    <string name="folder_documents">Documents</string>
+    <string name="category_images">Images</string>
+    <string name="category_videos">Videos</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_documents">Documents</string>
+    <string name="category_archives">Archives</string>
+    <!-- Android app installer files (APK). -->
+    <string name="category_apps">APKs</string>
+    <string name="category_other">Other</string>
+    <string name="category_recent">Recent files</string>
+    <string name="category_empty">No files here yet.</string>
+    <string name="update_ready_title">Update ready</string>
+    <string name="update_ready">A new version of SaralFileManager has been downloaded. Restart to use it.</string>
+    <string name="update_restart">Restart</string>
+    <string name="rate_app">Rate SaralFileManager</string>
+    <string name="source_code">Source code on GitHub</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="about_version">SaralFileManager %1$s by Saral Techies</string>
+    <string name="more_apps_title">More from Saral Techies</string>
+    <string name="more_saralreader">SaralReader: PDF &amp; highlights</string>
+    <string name="more_saralreader_summary">Read, highlight and scan PDFs</string>
+    <string name="more_saralqrscan">SaralQRScan: QR &amp; barcode scanner</string>
+    <string name="more_saralqrscan_summary">Scan any code, with a link safety check</string>
+    <string name="more_authenticator">Saral Authenticator: 2FA</string>
+    <string name="more_authenticator_summary">Two-step verification codes for all your accounts</string>
+    <string name="more_website">saraltechies.com</string>
+    <string name="more_website_summary">Websites, apps and digital marketing</string>
+    <string name="shortcut_downloads">Downloads</string>
+    <string name="shortcut_images">Images</string>
+    <string name="shortcut_search">Search files</string>
+
+    <!-- Folder screen -->
+    <string name="folder_empty">This folder is empty.</string>
+    <string name="folder_unreadable">This folder can\'t be opened. Android keeps some folders, such as Android/data, private to each app.</string>
+    <string name="new_folder">New folder</string>
+    <string name="new_file">New file</string>
+    <string name="default_folder_name">New folder</string>
+    <string name="default_file_name">New file.txt</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_date">Date modified</string>
+    <string name="sort_size">Size</string>
+    <string name="sort_type">Type</string>
+    <string name="sort_descending">Reverse order</string>
+    <string name="show_hidden">Show hidden files</string>
+    <string name="grid_view">Grid view</string>
+    <string name="list_view">List view</string>
+    <string name="bookmark_folder">Bookmark folder</string>
+    <string name="remove_bookmark">Remove bookmark</string>
+    <string name="search_placeholder">Search files</string>
+    <string name="clear_search">Clear search</string>
+    <!-- %1$s is the folder being searched. -->
+    <string name="search_hint">Type a name to search %1$s and the folders inside it.</string>
+    <string name="search_nothing_found">Nothing found for \"%1$s\".</string>
+
+    <!-- Selection -->
+    <!-- %1$d items are selected. -->
+    <string name="selected_count">%1$d selected</string>
+    <string name="clear_selection">Clear selection</string>
+    <string name="select_all">Select all</string>
+    <string name="copy">Copy</string>
+    <string name="cut">Cut</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <!-- Make a zip file. -->
+    <string name="compress">Compress to zip</string>
+    <string name="default_archive_name">Archive</string>
+    <string name="details">Details</string>
+    <string name="open_with">Open with</string>
+    <string name="show_in_folder">Show in folder</string>
+
+    <!-- Dialogs -->
+    <!-- %1$s is a file or folder name. -->
+    <string name="delete_one_title">Delete \"%1$s\"?</string>
+    <plurals name="delete_many_title">
+        <item quantity="one">Delete %1$d item?</item>
+        <item quantity="other">Delete %1$d items?</item>
+    </plurals>
+    <string name="delete_message">This can\'t be undone. Folders are deleted with everything inside them.</string>
+    <string name="details_location">Location</string>
+    <string name="details_modified">Modified</string>
+    <string name="details_type">Type</string>
+    <string name="details_size">Size</string>
+    <string name="details_counting">Counting…</string>
+    <string name="zip_message">Extract this zip into a new folder here, or open it with another app.</string>
+    <string name="extract_here">Extract here</string>
+    <string name="name_empty">Enter a name</string>
+    <string name="name_reserved">This name can\'t be used</string>
+    <string name="name_invalid_character">A name can\'t contain \"/\"</string>
+    <string name="name_too_long">This name is too long</string>
+
+    <!-- Operations -->
+    <plurals name="copying">
+        <item quantity="one">Copying %1$d item</item>
+        <item quantity="other">Copying %1$d items</item>
+    </plurals>
+    <plurals name="moving">
+        <item quantity="one">Moving %1$d item</item>
+        <item quantity="other">Moving %1$d items</item>
+    </plurals>
+    <plurals name="deleting">
+        <item quantity="one">Deleting %1$d item</item>
+        <item quantity="other">Deleting %1$d items</item>
+    </plurals>
+    <plurals name="compressing">
+        <item quantity="one">Compressing %1$d item</item>
+        <item quantity="other">Compressing %1$d items</item>
+    </plurals>
+    <plurals name="extracting">
+        <item quantity="one">Extracting %1$d zip</item>
+        <item quantity="other">Extracting %1$d zips</item>
+    </plurals>
+    <plurals name="ready_to_copy">
+        <item quantity="one">%1$d item to copy</item>
+        <item quantity="other">%1$d items to copy</item>
+    </plurals>
+    <plurals name="ready_to_move">
+        <item quantity="one">%1$d item to move</item>
+        <item quantity="other">%1$d items to move</item>
+    </plurals>
+    <string name="paste_here">Paste here</string>
+    <string name="move_here">Move here</string>
+    <plurals name="copied">
+        <item quantity="one">%1$d item copied</item>
+        <item quantity="other">%1$d items copied</item>
+    </plurals>
+    <plurals name="moved">
+        <item quantity="one">%1$d item moved</item>
+        <item quantity="other">%1$d items moved</item>
+    </plurals>
+    <plurals name="deleted">
+        <item quantity="one">%1$d item deleted</item>
+        <item quantity="other">%1$d items deleted</item>
+    </plurals>
+    <!-- %1$s is the zip file's name. -->
+    <string name="compressed">Saved %1$s</string>
+    <!-- %1$s is the new folder's name. -->
+    <string name="extracted">Extracted to %1$s</string>
+    <string name="cancelled">Cancelled</string>
+    <string name="error_into_itself">A folder can\'t be copied or moved into itself</string>
+    <string name="error_no_space">Not enough storage space</string>
+    <string name="error_not_allowed">Android doesn\'t allow changes here</string>
+    <string name="error_operation_failed">Something went wrong. Some items may not have been changed.</string>
+    <string name="name_taken">Something with that name is already here</string>
+    <string name="couldnt_rename">Couldn\'t rename</string>
+    <string name="couldnt_create">Couldn\'t create it here</string>
+    <string name="couldnt_share">Couldn\'t share these files</string>
+    <string name="no_app_to_open">No app on this phone can open this file</string>
+</resources>
