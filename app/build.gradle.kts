@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
+    // Play's in-app update library brings an old Fragment; registerForActivityResult (AppUpdates) needs 1.3+.
+    implementation(libs.androidx.fragment.ktx)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
