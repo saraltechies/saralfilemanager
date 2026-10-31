@@ -3,7 +3,7 @@
 Every claim below matches the code as of 1.0.0. Re-check before each release.
 
 ## App name (max 30)
-SaralFileManager: Files & Zip
+Saral File Manager
 
 ## Short description (max 80)
 Simple, private file manager: copy, move, zip, search. No ads, no internet.

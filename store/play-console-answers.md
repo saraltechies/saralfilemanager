@@ -7,7 +7,7 @@ They match the code as of v1.0.0: no ads, no analytics, no crash reporting, and 
 
 ## Create app
 - Developer account: **Saral Techies Official** (organization)
-- App name: `SaralFileManager: Files & Zip`
+- App name: `Saral File Manager`
 - Default language: English (India) – en-IN
 - App or game: **App**
 - Free or paid: **Free**
