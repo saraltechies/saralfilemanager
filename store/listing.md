@@ -81,9 +81,9 @@ https://saraltechies.com/saralfilemanager/privacy-policy (upload `store/privacy-
 | --- | --- | --- |
 | App icon | icon-512.png | 512×512 PNG |
 | Feature graphic | feature-graphic-1024x500.png | 1024×500 PNG |
-| Phone screenshots | phone-screenshot-1…5.png | 1080×1920 PNG (2–8 required) |
+| Phone screenshots | phone-screenshot-1…6.png | 1080×1920 PNG (2–8 required) |
 
 All graphics are rendered from `graphics-src/store.html` with `sh graphics-src/render.sh` (run from this folder).
-The 1.0.0 screenshots show drawings of the app's screens. Before the Production release, replace them with real
-captures: take them on a phone or emulator, save them as `graphics-src/app-shots/home.png`, `browse.png`, `select.png`,
-`zip.png` and `dark.png` (1080×2220 or similar), and switch the `.phone` blocks in `store.html` to `<img>` tags like SaralReader's.
+The icon and feature graphic come from `graphics-src`. The phone screenshots are real captures made by the "Store screenshots"
+workflow on an emulator filled with invented sample files (no real data): Home, Free up space, Duplicate files, Apps,
+app details and Images. Run it again after a screen changes.
