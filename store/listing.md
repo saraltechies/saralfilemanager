@@ -19,7 +19,7 @@ SEE WHAT TAKES SPACE
 • Recent files from the last 30 days
 
 FREE UP SPACE
-• Duplicate files: the same photo or video saved twice; the oldest copy is kept
+• Duplicate files: the same photo or video saved twice; the original is kept
 • Large files of 100 MB or more, biggest first
 • Old screenshots and everything in Downloads
 • Apps you haven't opened in 30 days

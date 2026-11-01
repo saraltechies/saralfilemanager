@@ -206,7 +206,7 @@
     <string name="clean_title">Free up space</string>
     <string name="clean_free">%1$s free</string>
     <string name="clean_duplicates">Duplicate files</string>
-    <string name="clean_duplicates_text">The same file saved more than once. The oldest copy is kept.</string>
+    <string name="clean_duplicates_text">The same file saved more than once. The original is kept.</string>
     <string name="clean_large">Large files</string>
     <string name="clean_large_text">Files of 100 MB or more, biggest first</string>
     <string name="clean_screenshots">Old screenshots</string>
