@@ -1,22 +1,35 @@
 # Saral File Manager – Google Play store listing (en-IN / en-US)
 
-Every claim below matches the code as of 1.0.1. Re-check before each release.
+Every claim below matches the code as of 1.1.0. Re-check before each release.
 
 ## App name (max 30)
 Saral File Manager
 
 ## Short description (max 80)
-Simple, private file manager: copy, move, zip and search your files offline.
+Free up space, manage apps and files. Private, offline, no ads.
 
 ## Full description (max 4000)
-Saral File Manager is a simple, private file manager from Saral Techies. Browse your phone's storage, SD card and USB drives, copy and move files, make and open zip files, find anything with search, and clean up what you don't need. There are no ads, you don't need an account, and the app doesn't even have internet access, so your files never leave your phone. It's free and open source.
+Saral File Manager (Saral Files on your phone) is a simple, private file manager from Saral Techies. See what takes space, free it up in a few taps, manage your apps, browse your phone's storage, SD card and USB drives, copy and move files, make and open zip files, and find anything with search. There are no ads, you don't need an account, and the app doesn't even have internet access, so your files never leave your phone. It's free and open source.
 
-SEE EVERYTHING AT A GLANCE
+SEE WHAT TAKES SPACE
 • Internal storage, SD card and USB drives, with how much space is used
-• Categories for images, videos, audio, documents, archives and APKs
-• Quick access to Downloads, Camera and Documents
+• Downloads, images, videos, audio, documents, apps, archives and APK files, each with its size and number of files
+• Quick access to Screenshots, Camera and Documents
 • Bookmark the folders you use most
 • Recent files from the last 30 days
+
+FREE UP SPACE
+• Duplicate files: the same photo or video saved twice; the oldest copy is kept
+• Large files of 100 MB or more, biggest first
+• Old screenshots and everything in Downloads
+• Apps you haven't opened in 30 days
+• You choose what goes: nothing is deleted without your OK
+
+MANAGE APPS
+• Every app with its size, biggest first
+• Uninstall one app or several at once
+• Clear cache or storage through Android's app info
+• Save or share an app's installer (APK)
 
 BROWSE YOUR WAY
 • List or grid view, with photo and video previews
