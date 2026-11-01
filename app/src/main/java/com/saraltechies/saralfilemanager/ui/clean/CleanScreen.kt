@@ -1,5 +1,6 @@
 package com.saraltechies.saralfilemanager.ui.clean
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -278,7 +279,7 @@ fun CleanListScreen(
             )
         },
         bottomBar = {
-            Column {
+            Column(Modifier.background(MaterialTheme.colorScheme.background)) {
                 OperationBar(operations, pasteTarget = null)
                 if (ticked.isNotEmpty()) {
                     Button(

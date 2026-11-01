@@ -37,6 +37,16 @@ class DuplicatesTest {
     }
 
     @Test
+    fun keepsTheCameraPhotoOverAnOlderForwardedCopy() {
+        val photo = Random(5).nextBytes(40_000)
+        val forwarded = file("Download/WhatsApp Images/IMG-20261020-WA0001.jpg", photo, 1_000)
+        val camera = file("DCIM/Camera/IMG_20261021_101512.jpg", photo, 5_000)
+        assertEquals(listOf(camera, forwarded), Duplicates.find(listOf(forwarded, camera)).single())
+        assertEquals(2, Duplicates.copyLikeness(File("/sdcard/DCIM/photo (2).jpg")))
+        assertEquals(0, Duplicates.copyLikeness(File("/sdcard/Pictures/Holi 2026.jpg")))
+    }
+
+    @Test
     fun sameSizeAndEdgesButDifferentMiddleAreNotCopies() {
         // Big files that match at the start and end but differ in the middle need the full comparison.
         val a = Random(3).nextBytes(200_000)

@@ -14,10 +14,27 @@ object Duplicates {
     private const val EDGE = 16 * 1024
 
     /**
-     * The copy to keep comes first in each group: the oldest file (most likely the original), then the shorter
-     * path (a copy is usually deeper, like "Download/WhatsApp/…"), then by name, so the choice is always the same.
+     * The copy to keep comes first in each group: one that doesn't look like a copy (see [copyLikeness]), then the
+     * oldest, then the shorter path, then by name, so the choice is always the same.
      */
-    val keepFirst: Comparator<File> = compareBy<File>({ it.lastModified() }, { it.path.length }, { it.path })
+    val keepFirst: Comparator<File> =
+        compareBy<File>({ copyLikeness(it) }, { it.lastModified() }, { it.path.length }, { it.path })
+
+    private val numberedName = Regex(""".* \(\d+\)(\.[^.]*)?$|.*[ _-]copy(\.[^.]*)?$""", RegexOption.IGNORE_CASE)
+    private val sharedFolders = listOf("/download/", "/whatsapp", "/telegram", "/bluetooth", "/sharechat", "/snapchat")
+
+    /**
+     * 0 for a file where originals live (Camera, Pictures, Documents…), 1 for a received or downloaded file
+     * (Download, WhatsApp, Telegram, Bluetooth), 2 for a numbered or "copy" name like "photo (1).jpg".
+     */
+    fun copyLikeness(file: File): Int {
+        val path = file.path.lowercase()
+        return when {
+            numberedName.matches(file.name) -> 2
+            sharedFolders.any { it in path } -> 1
+            else -> 0
+        }
+    }
 
     /** Groups of two or more identical files, each sorted with [keepFirst]. [checkCancelled] is called often. */
     fun find(files: List<File>, minBytes: Long = 1, checkCancelled: () -> Unit = {}): List<List<File>> =
