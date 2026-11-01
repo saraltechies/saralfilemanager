@@ -22,6 +22,7 @@ android {
         targetSdk = 36
         versionCode = 3
         versionName = "1.1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -80,4 +81,11 @@ dependencies {
     implementation(libs.play.app.update.ktx)
 
     testImplementation(libs.junit)
+
+    // Emulator test that takes the store screenshots from the real app.
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
