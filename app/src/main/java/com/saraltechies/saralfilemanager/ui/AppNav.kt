@@ -21,7 +21,12 @@ import com.saraltechies.saralfilemanager.data.SettingsRepository
 import com.saraltechies.saralfilemanager.files.FileCategory
 import com.saraltechies.saralfilemanager.files.FileOperations
 import com.saraltechies.saralfilemanager.files.FileRepository
+import com.saraltechies.saralfilemanager.apps.AppsRepository
+import com.saraltechies.saralfilemanager.clean.CleanKind
+import com.saraltechies.saralfilemanager.ui.apps.AppsScreen
 import com.saraltechies.saralfilemanager.ui.browser.BrowserScreen
+import com.saraltechies.saralfilemanager.ui.clean.CleanListScreen
+import com.saraltechies.saralfilemanager.ui.clean.CleanScreen
 import com.saraltechies.saralfilemanager.ui.category.CategoryScreen
 import com.saraltechies.saralfilemanager.ui.components.OperationMessages
 import com.saraltechies.saralfilemanager.ui.home.HomeScreen
@@ -52,6 +57,7 @@ fun AppNav(
 
     val nav = rememberNavController()
     val snackbar = remember { SnackbarHostState() }
+    val apps = remember { AppsRepository(context.applicationContext) }
     val openFolder: (String) -> Unit = { nav.navigate(browseRoute(it)) }
     OperationMessages(operations, settings, snackbar, onOpenFolder = openFolder)
 
@@ -62,6 +68,7 @@ fun AppNav(
             AppShortcuts.ID_DOWNLOADS -> openFolder(File(files.primaryRoot, Environment.DIRECTORY_DOWNLOADS).path)
             AppShortcuts.ID_IMAGES -> nav.navigate(categoryRoute(FileCategory.IMAGE))
             AppShortcuts.ID_SEARCH -> nav.navigate(browseRoute(files.primaryRoot.path, search = true))
+            AppShortcuts.ID_CLEAN -> nav.navigate("clean")
         }
     }
 
@@ -77,6 +84,9 @@ fun AppNav(
                 onOpenFolder = openFolder,
                 onSearch = { nav.navigate(browseRoute(files.primaryRoot.path, search = true)) },
                 onOpenCategory = { nav.navigate(categoryRoute(it)) },
+                apps = apps,
+                onOpenApps = { nav.navigate("apps?unused=false") },
+                onOpenClean = { nav.navigate("clean") },
                 updateReady = updateReady,
                 onRestartForUpdate = onRestartForUpdate,
             )
@@ -98,6 +108,24 @@ fun AppNav(
                 snackbar = snackbar,
                 onBack = { nav.popBackStack() },
             )
+        }
+        composable(
+            "apps?unused={unused}",
+            arguments = listOf(navArgument("unused") { type = NavType.BoolType; defaultValue = false }),
+        ) { entry ->
+            AppsScreen(apps, startUnused = entry.arguments?.getBoolean("unused") == true, snackbar = snackbar, onBack = { nav.popBackStack() })
+        }
+        composable("clean") {
+            CleanScreen(
+                files = files, operations = operations, apps = apps, snackbar = snackbar,
+                onBack = { nav.popBackStack() },
+                onOpen = { nav.navigate("clean/" + it.name) },
+                onOpenApps = { unused -> nav.navigate("apps?unused=" + unused) },
+            )
+        }
+        composable("clean/{kind}") { entry ->
+            val kind = CleanKind.entries.firstOrNull { it.name == entry.arguments?.getString("kind") } ?: CleanKind.LARGE
+            CleanListScreen(kind, files, operations, snackbar, onBack = { nav.popBackStack() })
         }
         composable("category/{name}") { entry ->
             val name = entry.arguments?.getString("name")

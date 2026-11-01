@@ -126,6 +126,58 @@ class FileRepository(private val context: Context) {
         ).filter { !it.path.contains("/.") }
     }
 
+    /**
+     * How much space each kind of file takes, from Android's media index in one pass, plus the Download folder.
+     * Hidden files count too: they take space all the same.
+     */
+    suspend fun usage(): StorageUsage = withContext(Dispatchers.IO) {
+        val totals = HashMap<FileCategory, Usage>()
+        runCatching {
+            context.contentResolver.query(
+                MediaStore.Files.getContentUri("external"),
+                arrayOf(MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.SIZE),
+                "${MediaStore.MediaColumns.SIZE} > 0", null, null,
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    ensureActive()
+                    val path = cursor.getString(0) ?: continue
+                    val category = FileCategory.of(path.substringAfterLast('/'))
+                    if (category == FileCategory.OTHER) continue
+                    totals[category] = (totals[category] ?: Usage()) + cursor.getLong(1)
+                }
+            }
+        }
+        var downloads = Usage()
+        File(primaryRoot, Environment.DIRECTORY_DOWNLOADS).walkTopDown().forEach {
+            ensureActive()
+            if (it.isFile) downloads += it.length()
+        }
+        StorageUsage(totals, downloads)
+    }
+
+    /**
+     * Files from Android's media index matching [selection], as [FileItem]s, in [order]. Hidden files and folders
+     * and the app-private Android folder are left out, so cleaning suggestions never touch them.
+     */
+    suspend fun mediaFiles(selection: String, args: Array<String>, order: String, limit: Int = 5000): List<FileItem> =
+        withContext(Dispatchers.IO) {
+            val items = mutableListOf<FileItem>()
+            runCatching {
+                context.contentResolver.query(
+                    MediaStore.Files.getContentUri("external"), arrayOf(MediaStore.MediaColumns.DATA), selection, args, order,
+                )?.use { cursor ->
+                    while (cursor.moveToNext() && items.size < limit) {
+                        ensureActive()
+                        val path = cursor.getString(0) ?: continue
+                        if (path.contains("/.") || path.contains("/Android/")) continue
+                        val file = File(path)
+                        if (file.isFile) items += FileItem.from(file)
+                    }
+                }
+            }
+            items
+        }
+
     /** Size and number of files below [file], for the details dialog. */
     suspend fun measure(files: List<File>): Pair<Long, Int> = withContext(Dispatchers.IO) {
         var bytes = 0L

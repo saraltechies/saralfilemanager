@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path android:fillColor="#0D6EFD" android:pathData="M24,0 A24,24 0 1,1 24,48 A24,24 0 1,1 24,0 Z" />
+    <!-- A sparkle: free space. -->
+    <path android:fillColor="#FFFFFF" android:pathData="M21,11 L23.6,19.4 L32,22 L23.6,24.6 L21,33 L18.4,24.6 L10,22 L18.4,19.4 Z M32,27 L33.4,31.6 L38,33 L33.4,34.4 L32,39 L30.6,34.4 L26,33 L30.6,31.6 Z" />
+</vector>
