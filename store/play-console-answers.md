@@ -14,7 +14,7 @@ They match the code as of v1.0.0: no ads, no analytics, no crash reporting, and 
 
 ## App access
 - **All functionality is available without special access** (no login). Reviewers need to allow "All files access" on first launch; mention it in the notes:
-  "On first launch, tap Allow and turn on All files access for SaralFileManager. The app is a file manager and needs it to list and manage files."
+  "On first launch, tap Allow and turn on All files access for Saral Files. The app is a file manager and needs it to list and manage files."
 
 ## Ads
 - **No, my app does not contain ads.**
@@ -57,6 +57,11 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - Contact email: support@saraltechies.com
 - Website: https://saraltechies.com/
 
+## Permissions added in 1.1.0
+- `PACKAGE_USAGE_STATS` (Usage access) and `REQUEST_DELETE_PACKAGES` need no declaration form. Play may ask in **App content → Permissions** why usage access is used: "Optional. Shows each app's full size and which apps the user hasn't opened in 30 days, so they can free up space. Nothing leaves the device."
+- No `QUERY_ALL_PACKAGES`: the app lists launcher apps through a `<queries>` intent.
+- Data safety stays **No data collected**: the app list and usage are read on the device and never sent.
+
 ## Release
 - Countries: **all countries** (or start with India)
 - Track: **Internal testing** first, then **Production**
@@ -64,8 +69,18 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - Upload key SHA-256 (for reference):
   `C1:38:DE:8B:78:5A:2E:32:28:06:6F:B0:9F:96:D3:A7:C6:80:7D:1C:2B:E1:DF:2C:72:63:9E:D0:F9:90:27:05`
 - Deobfuscation file: upload `mapping.txt` from the same build.
-- Release name: `1.0.1 (2)` (1.0.0 (1) was replaced while still in review, to ship the "Saral File Manager" name)
-- Release notes (en-IN):
+- Release name: `1.1.0 (3)` (earlier: `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
+- Release notes for 1.1.0 (en-IN):
+  ```
+  <en-IN>
+  Now called Saral Files on your phone.
+  • See how much space Downloads, photos, videos, apps and more take
+  • Free up space: duplicates, large files, old screenshots, unused apps
+  • Apps: sizes, uninstall several at once, save or share installers
+  • Free up space shortcut from the app icon
+  </en-IN>
+  ```
+- Release notes for 1.0.1 (en-IN):
   ```
   <en-IN>
   First release of Saral File Manager.

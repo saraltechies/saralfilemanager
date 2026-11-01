@@ -7,9 +7,11 @@ Free and open source (GPL-3.0). No ads, no account, and no internet permission: 
 [<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80">](https://play.google.com/store/apps/details?id=com.saraltechies.saralfilemanager)
 -->
 
-## Features (1.0)
+## Features (1.1)
 
-- **Home**: every storage volume (internal storage, SD card, USB drive) with its used and total space; categories for images, videos, audio, documents, archives and APKs; quick access to Downloads, Camera and Documents; bookmarked folders; recently changed files.
+- **Home**: every storage volume (internal storage, SD card, USB drive) with its used and total space; tiles for Downloads, images, videos, audio, documents, apps, archives and APK files, each with its size and file count; quick access to Screenshots, Camera and Documents; bookmarked folders; recently changed files.
+- **Free up space**: duplicate files (grouped; the oldest copy is kept and the others are ticked), files of 100 MB or more, screenshots older than 30 days, the Download folder, and apps not opened in 30 days. Nothing is deleted until you confirm.
+- **Apps**: apps from the app drawer with their sizes (installer size, or app + data + cache with Usage access), last used date, sort by size, name, least used or install date; uninstall one or several (Android asks for each), open app info to clear cache or storage, save the installer to `Download/Saral Files/APKs` (split apps as `.apks`) or share it.
 - **Browse** folder by folder with a breadcrumb path. List or grid view, sort by name (natural order: "Photo 2" before "Photo 10"), date, size or type, optionally reversed. Hidden files on request.
 - **Photo and video previews** in lists and grids, made on the phone.
 - **Copy, cut and paste** across folders and storages, **rename**, **delete** (with confirmation), **new folder** and **new file**. Long-press to select several items; Select all.
@@ -18,7 +20,7 @@ Free and open source (GPL-3.0). No ads, no account, and no internet permission: 
 - **Details**: location, date, type, and the total size and file count of folders.
 - **Open with** and **Share** through Android's normal app picker.
 - Copies, moves and zips run in the background with a progress bar and **Cancel**; a cancelled copy leaves no half-written file.
-- Launcher shortcuts (Downloads, Images, Search), Material 3 with light and dark themes in the Saral Techies colours.
+- Shows as **Saral Files** under the icon. Launcher shortcuts (Free up space, Downloads, Images, Search), Material 3 with light and dark themes in the Saral Techies colours.
 - Google Play rating and in-app update prompts (through the Play Store app, so still no internet permission).
 
 ## Permissions
@@ -27,6 +29,10 @@ Free and open source (GPL-3.0). No ads, no account, and no internet permission: 
 | --- | --- | --- |
 | 11 and newer | **All files access** (`MANAGE_EXTERNAL_STORAGE`), switched on by the user in Settings | A file manager has to see and change every file and folder in shared storage. This is one of the uses Google Play allows. |
 | 8 to 10 | `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE` | Same, with the older permission dialog. |
+| all | **Usage access** (`PACKAGE_USAGE_STATS`), optional, switched on by the user in Settings | Full app sizes (data and cache) and last-used dates on the Apps and Free up space screens. Without it, installer sizes are shown. |
+| all | `REQUEST_DELETE_PACKAGES` | Opens Android's own uninstall prompt; Android asks the user to confirm each app. |
+
+The Apps screen lists launcher apps through a `<queries>` entry for the launcher intent, so the app doesn't need `QUERY_ALL_PACKAGES`.
 
 There is no `INTERNET` permission; the manifest removes it in case a library asks, and the release build fails if it appears.
 Folders that Android keeps private to each app (`Android/data`, `Android/obb` on Android 11+) can't be opened by any file manager.

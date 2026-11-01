@@ -1,22 +1,35 @@
 # Saral File Manager – Google Play store listing (en-IN / en-US)
 
-Every claim below matches the code as of 1.0.1. Re-check before each release.
+Every claim below matches the code as of 1.1.0. Re-check before each release.
 
 ## App name (max 30)
 Saral File Manager
 
 ## Short description (max 80)
-Simple, private file manager: copy, move, zip and search your files offline.
+Free up space, manage apps and files. Private, offline, no ads.
 
 ## Full description (max 4000)
-Saral File Manager is a simple, private file manager from Saral Techies. Browse your phone's storage, SD card and USB drives, copy and move files, make and open zip files, find anything with search, and clean up what you don't need. There are no ads, you don't need an account, and the app doesn't even have internet access, so your files never leave your phone. It's free and open source.
+Saral File Manager (Saral Files on your phone) is a simple, private file manager from Saral Techies. See what takes space, free it up in a few taps, manage your apps, browse your phone's storage, SD card and USB drives, copy and move files, make and open zip files, and find anything with search. There are no ads, you don't need an account, and the app doesn't even have internet access, so your files never leave your phone. It's free and open source.
 
-SEE EVERYTHING AT A GLANCE
+SEE WHAT TAKES SPACE
 • Internal storage, SD card and USB drives, with how much space is used
-• Categories for images, videos, audio, documents, archives and APKs
-• Quick access to Downloads, Camera and Documents
+• Downloads, images, videos, audio, documents, apps, archives and APK files, each with its size and number of files
+• Quick access to Screenshots, Camera and Documents
 • Bookmark the folders you use most
 • Recent files from the last 30 days
+
+FREE UP SPACE
+• Duplicate files: the same photo or video saved twice; the oldest copy is kept
+• Large files of 100 MB or more, biggest first
+• Old screenshots and everything in Downloads
+• Apps you haven't opened in 30 days
+• You choose what goes: nothing is deleted without your OK
+
+MANAGE APPS
+• Every app with its size, biggest first
+• Uninstall one app or several at once
+• Clear cache or storage through Android's app info
+• Save or share an app's installer (APK)
 
 BROWSE YOUR WAY
 • List or grid view, with photo and video previews
@@ -68,9 +81,9 @@ https://saraltechies.com/saralfilemanager/privacy-policy (upload `store/privacy-
 | --- | --- | --- |
 | App icon | icon-512.png | 512×512 PNG |
 | Feature graphic | feature-graphic-1024x500.png | 1024×500 PNG |
-| Phone screenshots | phone-screenshot-1…5.png | 1080×1920 PNG (2–8 required) |
+| Phone screenshots | phone-screenshot-1…6.png | 1080×1920 PNG (2–8 required) |
 
 All graphics are rendered from `graphics-src/store.html` with `sh graphics-src/render.sh` (run from this folder).
-The 1.0.0 screenshots show drawings of the app's screens. Before the Production release, replace them with real
-captures: take them on a phone or emulator, save them as `graphics-src/app-shots/home.png`, `browse.png`, `select.png`,
-`zip.png` and `dark.png` (1080×2220 or similar), and switch the `.phone` blocks in `store.html` to `<img>` tags like SaralReader's.
+The icon and feature graphic come from `graphics-src`. The phone screenshots are real captures made by the "Store screenshots"
+workflow on an emulator filled with invented sample files (no real data): Home, Free up space, Duplicate files, Apps,
+app details and Images. Run it again after a screen changes.

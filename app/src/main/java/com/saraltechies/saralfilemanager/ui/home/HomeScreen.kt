@@ -62,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,7 +76,16 @@ import com.saraltechies.saralfilemanager.files.FileItem
 import com.saraltechies.saralfilemanager.files.FileOperations
 import com.saraltechies.saralfilemanager.files.FileRepository
 import com.saraltechies.saralfilemanager.files.Sizes
+import com.saraltechies.saralfilemanager.files.StorageUsage
+import com.saraltechies.saralfilemanager.files.Usage
 import com.saraltechies.saralfilemanager.files.Volume
+import com.saraltechies.saralfilemanager.apps.AppsRepository
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.CleaningServices
+import androidx.compose.material.icons.filled.Screenshot
+import androidx.compose.material3.Button
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.saraltechies.saralfilemanager.ui.category.title
 import com.saraltechies.saralfilemanager.ui.components.FileRow
 import com.saraltechies.saralfilemanager.ui.components.OperationBar
@@ -97,6 +107,9 @@ fun HomeScreen(
     onOpenFolder: (String) -> Unit,
     onSearch: () -> Unit,
     onOpenCategory: (FileCategory?) -> Unit,
+    apps: AppsRepository,
+    onOpenApps: () -> Unit,
+    onOpenClean: () -> Unit,
     updateReady: Boolean = false,
     onRestartForUpdate: () -> Unit = {},
 ) {
@@ -106,6 +119,13 @@ fun HomeScreen(
     val bookmarks by settings.bookmarks.collectAsStateWithLifecycle(initialValue = emptySet())
     val volumes by produceState(emptyList<Volume>(), changes) { value = files.volumes() }
     val recent by produceState(emptyList<FileItem>(), changes) { value = files.recent() }
+    // Sizes are counted again after file changes and when coming back to the app (apps may have been removed).
+    var resumed by remember { mutableStateOf(0) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { resumed++ }
+    val usage by produceState<StorageUsage?>(null, changes, resumed) { value = files.usage() }
+    val appsUsage by produceState<Usage?>(null, resumed) {
+        value = apps.installed().filter { !it.isSystem }.let { list -> Usage(list.sumOf { it.totalBytes }, list.size) }
+    }
     val primary = files.primaryRoot
 
     Scaffold(
@@ -127,14 +147,30 @@ fun HomeScreen(
             item { SectionTitle(stringResource(R.string.section_storage)) }
             items(volumes, key = { it.path }) { volume -> VolumeCard(volume, onClick = { onOpenFolder(volume.path) }) }
 
+            volumes.firstOrNull { it.isPrimary }?.let { v -> item { CleanCard(v.freeBytes, onOpenClean) } }
+
             item { SectionTitle(stringResource(R.string.section_categories)) }
-            item { CategoryGrid(onOpenCategory) }
+            item {
+                val tiles = listOf(
+                    CategoryTile(R.string.folder_downloads, Icons.Filled.Download, MaterialTheme.colorScheme.primary, usage?.downloads) {
+                        onOpenFolder(File(primary, Environment.DIRECTORY_DOWNLOADS).path)
+                    },
+                ) + HOME_CATEGORIES.filter { it != FileCategory.APK }.map { c ->
+                    CategoryTile(c.title(), c.icon(), c.color(), usage?.get(c)) { onOpenCategory(c) }
+                } + listOf(
+                    CategoryTile(R.string.tile_apps, Icons.Filled.Apps, Color(0xFF0EA5E9), appsUsage, onOpenApps),
+                    CategoryTile(FileCategory.APK.title(), FileCategory.APK.icon(), FileCategory.APK.color(), usage?.get(FileCategory.APK)) {
+                        onOpenCategory(FileCategory.APK)
+                    },
+                )
+                CategoryGrid(tiles)
+            }
 
             item { SectionTitle(stringResource(R.string.section_quick_access)) }
             item {
                 QuickFolders(
                     listOf(
-                        Triple(R.string.folder_downloads, Icons.Filled.Download, File(primary, Environment.DIRECTORY_DOWNLOADS)),
+                        Triple(R.string.folder_screenshots, Icons.Filled.Screenshot, screenshotsFolder(primary)),
                         Triple(R.string.folder_camera, Icons.Filled.CameraAlt, File(primary, Environment.DIRECTORY_DCIM)),
                         Triple(R.string.folder_documents, Icons.AutoMirrored.Filled.MenuBook, File(primary, Environment.DIRECTORY_DOCUMENTS)),
                     ),
@@ -230,24 +266,72 @@ private val HOME_CATEGORIES = listOf(
     FileCategory.DOCUMENT, FileCategory.ARCHIVE, FileCategory.APK,
 )
 
+/** A home tile: what it is, and (once counted) how much space it takes. */
+private class CategoryTile(val label: Int, val icon: ImageVector, val tint: Color, val usage: Usage?, val onClick: () -> Unit)
+
+/** Two columns of tiles with their sizes, like "Images · 4.2 GB · 1,230 items". */
 @Composable
-private fun CategoryGrid(onOpen: (FileCategory) -> Unit) {
+private fun CategoryGrid(tiles: List<CategoryTile>) {
     Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        HOME_CATEGORIES.chunked(3).forEach { row ->
+        tiles.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { category ->
-                    Tile(
-                        label = stringResource(category.title()),
-                        icon = category.icon(),
-                        tint = category.color(),
-                        onClick = { onOpen(category) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
+                row.forEach { tile -> SizeTile(tile, Modifier.weight(1f)) }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
 }
+
+@Composable
+private fun SizeTile(tile: CategoryTile, modifier: Modifier) {
+    Card(
+        onClick = tile.onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = tile.tint.copy(alpha = 0.10f)),
+    ) {
+        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(contentAlignment = Alignment.Center) {
+                Surface(color = tile.tint.copy(alpha = 0.18f), shape = CircleShape, modifier = Modifier.size(40.dp)) {}
+                Icon(tile.icon, null, tint = tile.tint, modifier = Modifier.size(22.dp))
+            }
+            Column(Modifier.padding(start = 12.dp)) {
+                Text(stringResource(tile.label), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val usage = tile.usage
+                Text(
+                    if (usage == null) stringResource(R.string.tile_counting) else pluralStringResource(R.plurals.tile_size, usage.count, usage.count, Sizes.format(usage.bytes)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+/** "Free up space" with the free space left, opening the Clean screen. */
+@Composable
+private fun CleanCard(freeBytes: Long, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.CleaningServices, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+            Column(Modifier.weight(1f).padding(horizontal = 16.dp)) {
+                Text(stringResource(R.string.home_clean_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.home_clean_text, Sizes.format(freeBytes)), style = MaterialTheme.typography.bodySmall)
+            }
+            Button(onClick = onClick) { Text(stringResource(R.string.home_clean_action)) }
+        }
+    }
+}
+
+/** Where this phone keeps screenshots: Pictures/Screenshots on most phones, DCIM/Screenshots on some. */
+private fun screenshotsFolder(primary: File): File =
+    listOf(File(primary, "${Environment.DIRECTORY_PICTURES}/Screenshots"), File(primary, "${Environment.DIRECTORY_DCIM}/Screenshots"))
+        .firstOrNull { it.isDirectory } ?: File(primary, "${Environment.DIRECTORY_PICTURES}/Screenshots")
 
 @Composable
 private fun QuickFolders(folders: List<Triple<Int, ImageVector, File>>, onOpen: (String) -> Unit) {

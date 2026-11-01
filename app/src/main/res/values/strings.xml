@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand: keep in Latin script in every language. -->
-    <string name="app_name" translatable="false">Saral File Manager</string>
+    <string name="app_name" translatable="false">Saral Files</string>
 
     <!-- Shared -->
     <string name="back">Back</string>
@@ -24,10 +24,10 @@
 
     <!-- Storage access -->
     <string name="permission_title">Allow access to your files</string>
-    <string name="permission_body_all_files">Saral File Manager needs \"All files access\" to show, copy, move and delete your files and folders. Tap Allow, then turn on the switch for Saral File Manager.</string>
-    <string name="permission_body">Saral File Manager needs access to your phone\'s storage to show, copy, move and delete your files and folders.</string>
+    <string name="permission_body_all_files">Saral Files needs \"All files access\" to show, copy, move and delete your files and folders. Tap Allow, then turn on the switch for Saral Files.</string>
+    <string name="permission_body">Saral Files needs access to your phone\'s storage to show, copy, move and delete your files and folders.</string>
     <string name="permission_allow">Allow</string>
-    <string name="permission_privacy">Your files stay on your phone. Saral File Manager has no internet access.</string>
+    <string name="permission_privacy">Your files stay on your phone. Saral Files has no internet access.</string>
 
     <!-- Home -->
     <string name="section_storage">Storage</string>
@@ -47,17 +47,17 @@
     <string name="category_documents">Documents</string>
     <string name="category_archives">Archives</string>
     <!-- Android app installer files (APK). -->
-    <string name="category_apps">APKs</string>
+    <string name="category_apps">APK files</string>
     <string name="category_other">Other</string>
     <string name="category_recent">Recent files</string>
     <string name="category_empty">No files here yet.</string>
     <string name="update_ready_title">Update ready</string>
-    <string name="update_ready">A new version of Saral File Manager has been downloaded. Restart to use it.</string>
+    <string name="update_ready">A new version of Saral Files has been downloaded. Restart to use it.</string>
     <string name="update_restart">Restart</string>
-    <string name="rate_app">Rate Saral File Manager</string>
+    <string name="rate_app">Rate Saral Files</string>
     <string name="source_code">Source code on GitHub</string>
     <string name="privacy_policy">Privacy policy</string>
-    <string name="about_version">Saral File Manager %1$s by Saral Techies</string>
+    <string name="about_version">Saral Files %1$s by Saral Techies</string>
     <string name="more_apps_title">More from Saral Techies</string>
     <string name="more_saralreader">SaralReader: PDF &amp; highlights</string>
     <string name="more_saralreader_summary">Read, highlight and scan PDFs</string>
@@ -70,6 +70,7 @@
     <string name="shortcut_downloads">Downloads</string>
     <string name="shortcut_images">Images</string>
     <string name="shortcut_search">Search files</string>
+    <string name="shortcut_clean">Free up space</string>
 
     <!-- Folder screen -->
     <string name="folder_empty">This folder is empty.</string>
@@ -189,4 +190,84 @@
     <string name="couldnt_create">Couldn\'t create it here</string>
     <string name="couldnt_share">Couldn\'t share these files</string>
     <string name="no_app_to_open">No app on this phone can open this file</string>
+    <!-- Home: category tiles with sizes, and freeing up space -->
+    <string name="tile_apps">Apps</string>
+    <string name="tile_counting">Counting…</string>
+    <plurals name="tile_size">
+        <item quantity="one">%2$s · %1$d item</item>
+        <item quantity="other">%2$s · %1$d items</item>
+    </plurals>
+    <string name="folder_screenshots">Screenshots</string>
+    <string name="home_clean_title">Free up space</string>
+    <string name="home_clean_text">%1$s free. Find copies, large files, old screenshots and apps you don\'t use.</string>
+    <string name="home_clean_action">Clean</string>
+
+    <!-- Clean -->
+    <string name="clean_title">Free up space</string>
+    <string name="clean_free">%1$s free</string>
+    <string name="clean_duplicates">Duplicate files</string>
+    <string name="clean_duplicates_text">The same file saved more than once. The oldest copy is kept.</string>
+    <string name="clean_large">Large files</string>
+    <string name="clean_large_text">Files of 100 MB or more, biggest first</string>
+    <string name="clean_screenshots">Old screenshots</string>
+    <string name="clean_screenshots_text">Screenshots older than 30 days</string>
+    <string name="clean_downloads">Downloaded files</string>
+    <string name="clean_downloads_text">Everything in your Download folder, biggest first</string>
+    <string name="clean_unused_apps">Unused apps</string>
+    <string name="clean_unused_apps_text">Apps you haven\'t opened in 30 days</string>
+    <string name="clean_unused_apps_allow">Turn on usage access to see which apps you haven\'t opened in 30 days</string>
+    <string name="clean_looking">Looking…</string>
+    <string name="clean_nothing">Nothing to clean</string>
+    <string name="clean_nothing_here">Nothing to clean here.</string>
+    <plurals name="clean_found">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <plurals name="clean_copies">
+        <item quantity="one">%1$d copy · %2$s each</item>
+        <item quantity="other">%1$d copies · %2$s each</item>
+    </plurals>
+    <plurals name="clean_delete">
+        <item quantity="one">Delete %1$d file · free %2$s</item>
+        <item quantity="other">Delete %1$d files · free %2$s</item>
+    </plurals>
+    <string name="clean_list_hint">Tap to select. Touch and hold to open.</string>
+    <string name="clean_select_none">Select none</string>
+
+    <!-- Apps -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_sort_size">Size</string>
+    <string name="apps_sort_name">Name</string>
+    <string name="apps_sort_last_used">Least used first</string>
+    <string name="apps_sort_installed">Recently installed</string>
+    <string name="apps_show_system">Show system apps</string>
+    <string name="apps_filter_all">All (%1$d)</string>
+    <string name="apps_filter_unused">Unused (%1$d)</string>
+    <string name="apps_total">Total %1$s</string>
+    <string name="apps_apk_sizes_only">installer sizes only</string>
+    <string name="apps_none">No apps to show.</string>
+    <string name="apps_none_unused">Every app has been used in the last 30 days.</string>
+    <string name="apps_last_used">Last used %1$s</string>
+    <string name="apps_version">Version %1$s</string>
+    <plurals name="apps_selected">
+        <item quantity="one">%1$d app · %2$s</item>
+        <item quantity="other">%1$d apps · %2$s</item>
+    </plurals>
+    <string name="apps_open">Open</string>
+    <string name="apps_uninstall">Uninstall</string>
+    <string name="apps_info">App info</string>
+    <string name="apps_info_hint">Clear cache or storage, permissions, force stop</string>
+    <string name="apps_backup">Save installer</string>
+    <string name="apps_backup_hint">Keeps a copy of the APK in Download/Saral Files/APKs</string>
+    <string name="apps_share">Share installer</string>
+    <string name="apps_backed_up">Saved to %1$s</string>
+    <string name="apps_backup_failed">Couldn\'t save the installer</string>
+    <string name="apps_size_app">App</string>
+    <string name="apps_size_data">Data</string>
+    <string name="apps_size_cache">Cache</string>
+    <string name="apps_size_total">Total</string>
+    <string name="apps_size_installer">Installer</string>
+    <string name="usage_access_title">See full app sizes</string>
+    <string name="usage_access_text">Turn on usage access for Saral Files to see each app\'s data and cache, and which apps you haven\'t used. It stays on this phone.</string>
+    <string name="usage_access_allow">Turn on</string>
 </resources>
