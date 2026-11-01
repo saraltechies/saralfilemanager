@@ -75,7 +75,7 @@ class Cleaner(private val files: FileRepository) {
 
     companion object {
         const val LARGE_BYTES = 100L * 1024 * 1024
-        const val MIN_DUPLICATE_BYTES = 100L * 1024
+        const val MIN_DUPLICATE_BYTES = 20L * 1024
         const val OLD_DAYS = 30
     }
 }

@@ -84,7 +84,8 @@ fun CleanScreen(
 ) {
     val changes by operations.changes.collectAsStateWithLifecycle()
     val cleaner = remember(files) { Cleaner(files) }
-    val volume by produceState<Volume?>(null, changes) { value = files.volumes().firstOrNull { it.isPrimary } }
+    // Read straight away (it is quick), so the card is there before the list is laid out.
+    val volume by produceState(remember { files.volumes().firstOrNull { it.isPrimary } }, changes) { value = files.volumes().firstOrNull { it.isPrimary } }
     var usageAccess by remember { mutableStateOf(apps.hasUsageAccess()) }
     var resumed by remember { mutableStateOf(0) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {

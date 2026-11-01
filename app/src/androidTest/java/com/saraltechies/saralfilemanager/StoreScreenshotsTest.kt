@@ -53,27 +53,29 @@ class StoreScreenshotsTest {
             settle(4_000)
             shot("1-home")
 
-            scrollTo(s(R.string.tile_apps))
-            settle()
-            shot("2-categories")
-
             click(s(R.string.home_clean_action))
             settle(6_000)
-            shot("3-free-up-space")
+            shot("2-free-up-space")
 
             click(s(R.string.clean_duplicates))
             settle(4_000)
-            shot("4-duplicates")
+            shot("3-duplicates")
             back()
             back()
 
-            scrollTo(s(R.string.tile_apps))
             click(s(R.string.tile_apps))
+            settle(2_000)
+            // The emulator has only built-in apps; show them so the list isn't empty.
+            click(s(R.string.more_options))
+            click(s(R.string.apps_show_system))
             settle(3_000)
-            shot("5-apps")
-
+            shot("4-apps")
+            click(s(R.string.app_name))
+            settle(2_000)
+            shot("5-app-details")
             back()
-            scrollTo(s(R.string.category_images))
+            back()
+
             click(s(R.string.category_images))
             settle(3_000)
             shot("6-images")
