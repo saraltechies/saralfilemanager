@@ -1,6 +1,6 @@
 # Saral File Manager – Google Play store listing (en-IN / en-US)
 
-Every claim below matches the code as of 1.1.0. Re-check before each release.
+Every claim below matches the code as of 1.1.1. Re-check before each release.
 
 ## App name (max 30)
 Saral File Manager

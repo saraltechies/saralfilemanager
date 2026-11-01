@@ -69,8 +69,8 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - Upload key SHA-256 (for reference):
   `C1:38:DE:8B:78:5A:2E:32:28:06:6F:B0:9F:96:D3:A7:C6:80:7D:1C:2B:E1:DF:2C:72:63:9E:D0:F9:90:27:05`
 - Deobfuscation file: upload `mapping.txt` from the same build.
-- Release name: `1.1.0 (3)` (earlier: `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
-- Release notes for 1.1.0 (en-IN):
+- Release name: `1.1.1 (4)` (earlier: `1.1.0 (3)` was replaced while still in review, `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
+- Release notes for 1.1.1 (en-IN), same as 1.1.0:
   ```
   <en-IN>
   Now called Saral Files on your phone.
