@@ -1,6 +1,19 @@
 package com.saraltechies.saralfilemanager.ui
 
+import android.Manifest
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.saraltechies.saralfilemanager.files.MediaFile
+import com.saraltechies.saralfilemanager.ui.bin.BinScreen
+import com.saraltechies.saralfilemanager.ui.gallery.GalleryScreen
+import com.saraltechies.saralfilemanager.ui.viewer.ViewerQueue
+import com.saraltechies.saralfilemanager.ui.viewer.ViewerScreen
+import com.saraltechies.saralfilemanager.util.Thumbnails
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.os.Environment
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -59,7 +72,26 @@ fun AppNav(
     val snackbar = remember { SnackbarHostState() }
     val apps = remember { AppsRepository(context.applicationContext) }
     val openFolder: (String) -> Unit = { nav.navigate(browseRoute(it)) }
+    val openViewer: (List<MediaFile>, Int) -> Unit = { list, index ->
+        ViewerQueue.set(list, index)
+        nav.navigate("viewer")
+    }
     OperationMessages(operations, settings, snackbar, onOpenFolder = openFolder)
+
+    // Old things leave the Bin and old previews the cache, once each time the app opens.
+    LaunchedEffect(Unit) {
+        files.purgeBin()
+        withContext(Dispatchers.IO) { Thumbnails.trimDisk(context.applicationContext) }
+    }
+
+    // The first long copy is when a notification starts to matter, so that's when to ask.
+    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    val progress by operations.progress.collectAsStateWithLifecycle()
+    LaunchedEffect(progress != null) {
+        if (progress != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && settings.takeNotificationAsk()) {
+            askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     LaunchedEffect(launchShortcut) {
         val shortcut = launchShortcut ?: return@LaunchedEffect
@@ -87,6 +119,7 @@ fun AppNav(
                 apps = apps,
                 onOpenApps = { nav.navigate("apps?unused=false") },
                 onOpenClean = { nav.navigate("clean") },
+                onOpenBin = { nav.navigate("bin") },
                 updateReady = updateReady,
                 onRestartForUpdate = onRestartForUpdate,
             )
@@ -107,7 +140,14 @@ fun AppNav(
                 settings = settings,
                 snackbar = snackbar,
                 onBack = { nav.popBackStack() },
+                onOpenViewer = openViewer,
             )
+        }
+        composable("viewer") {
+            ViewerScreen(files, operations, settings, snackbar, onBack = { nav.popBackStack() })
+        }
+        composable("bin") {
+            BinScreen(files, operations, settings, snackbar, onBack = { nav.popBackStack() })
         }
         composable(
             "apps?unused={unused}",
@@ -121,6 +161,7 @@ fun AppNav(
                 onBack = { nav.popBackStack() },
                 onOpen = { nav.navigate("clean/" + it.name) },
                 onOpenApps = { unused -> nav.navigate("apps?unused=" + unused) },
+                onOpenBin = { nav.navigate("bin") },
             )
         }
         composable("clean/{kind}") { entry ->
@@ -129,8 +170,13 @@ fun AppNav(
         }
         composable("category/{name}") { entry ->
             val name = entry.arguments?.getString("name")
+            val chosen = FileCategory.entries.firstOrNull { it.name == name }
+            if (chosen == FileCategory.IMAGE || chosen == FileCategory.VIDEO) {
+                GalleryScreen(chosen, files, operations, settings, snackbar, onBack = { nav.popBackStack() }, onOpenFolder = openFolder, onOpenViewer = openViewer)
+                return@composable
+            }
             CategoryScreen(
-                category = FileCategory.entries.firstOrNull { it.name == name },
+                category = chosen,
                 files = files,
                 operations = operations,
                 settings = settings,

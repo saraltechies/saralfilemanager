@@ -1,6 +1,7 @@
 package com.saraltechies.saralfilemanager.ui.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -30,6 +31,8 @@ import com.saraltechies.saralfilemanager.R
 @Composable
 fun SelectionTopBar(
     count: Int,
+    /** Shown after the count, such as the total size. */
+    subtitle: String? = null,
     onClose: () -> Unit,
     onCopy: () -> Unit,
     onCut: () -> Unit,
@@ -40,7 +43,12 @@ fun SelectionTopBar(
 ) {
     var open by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text(stringResource(R.string.selected_count, count)) },
+        title = {
+            Column {
+                Text(stringResource(R.string.selected_count, count), maxLines = 1)
+                if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+            }
+        },
         navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Filled.Close, stringResource(R.string.clear_selection)) } },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         actions = {

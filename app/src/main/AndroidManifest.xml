@@ -16,6 +16,11 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- Long copies, moves and zips carry on after leaving the app, with their progress in a notification. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- The Apps screen lists apps that appear in the launcher, so no "all apps" visibility is needed. -->
     <queries>
         <intent>
@@ -48,6 +53,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".util.FileOperationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- Hands files to other apps (open with, share) as content:// links. -->
         <provider

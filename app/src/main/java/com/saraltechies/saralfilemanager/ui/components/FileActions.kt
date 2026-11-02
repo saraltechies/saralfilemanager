@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,10 @@ class FileActions(
 
     fun askDelete(items: List<FileItem>) {
         if (items.isNotEmpty()) deleting = items
+    }
+
+    fun askDetails(items: List<FileItem>) {
+        if (items.isNotEmpty()) details = items
     }
 
     fun askNewFolder() {
@@ -130,13 +135,15 @@ class FileActions(
     /** [currentFolder] is where new files, folders and zips go; null on screens that aren't a folder. */
     @Composable
     fun Dialogs(currentFolder: String?, onSelectionDone: () -> Unit) {
+        val useBin by settings.useBin.collectAsState(initial = true)
         deleting?.let { items ->
             ConfirmDeleteDialog(
                 names = items.map { it.name },
+                toBin = useBin,
                 onConfirm = {
                     deleting = null
                     onSelectionDone()
-                    operations.delete(items.map { it.path })
+                    if (useBin) operations.trash(items.map { it.path }) else operations.delete(items.map { it.path })
                 },
                 onDismiss = { deleting = null },
             )

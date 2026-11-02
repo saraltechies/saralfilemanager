@@ -3,7 +3,9 @@ package com.saraltechies.saralfilemanager.files
 import android.content.Context
 import android.media.MediaScannerConnection
 import kotlinx.coroutines.CoroutineScope
+import com.saraltechies.saralfilemanager.util.FileOperationService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,7 +18,7 @@ import java.io.File
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
-enum class OperationKind { COPY, MOVE, DELETE, ZIP, EXTRACT }
+enum class OperationKind { COPY, MOVE, DELETE, ZIP, EXTRACT, TRASH, RESTORE }
 
 data class OperationProgress(
     val kind: OperationKind,
@@ -33,7 +35,13 @@ sealed interface OperationResult {
     val kind: OperationKind
 
     /** [output] is the zip made, the folder extracted to, or the single item pasted. */
-    data class Done(override val kind: OperationKind, val count: Int, val output: File?) : OperationResult
+    data class Done(
+        override val kind: OperationKind,
+        val count: Int,
+        val output: File?,
+        /** What was just moved to the Bin, for Undo. */
+        val binned: List<BinEntry> = emptyList(),
+    ) : OperationResult
     data class Cancelled(override val kind: OperationKind) : OperationResult
     data class Failed(override val kind: OperationKind, val reason: Reason) : OperationResult
 
@@ -96,6 +104,54 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
         }
     }
 
+    /** Moves to the Bin of each file's own storage, where it stays for [Bin.KEEP_DAYS] days. */
+    fun trash(paths: List<String>) {
+        val sources = paths.map(::File)
+        val moved = ArrayList<BinEntry>()
+        start(OperationKind.TRASH, sources, measure = { 0L }, binned = moved) { job ->
+            var failed = 0
+            for (source in sources) {
+                if (job.cancelled) throw CancellationException("Cancelled")
+                job.announce(source.name)
+                try {
+                    moved += Bin.moveIn(source, File("/" + volumeRoot(source)))
+                } catch (_: IOException) {
+                    failed++
+                }
+            }
+            if (failed > 0) throw IOException("$failed item(s) could not be moved to the Bin")
+            emptyList()
+        }
+    }
+
+    /** Puts things from the Bin back where they came from. */
+    fun restore(entries: List<BinEntry>) {
+        start(OperationKind.RESTORE, entries.map { it.item }, measure = { 0L }) { job ->
+            var failed = 0
+            val restored = ArrayList<File>()
+            for (entry in entries) {
+                if (job.cancelled) throw CancellationException("Cancelled")
+                job.announce(entry.name)
+                try {
+                    restored += Bin.restore(entry)
+                } catch (_: IOException) {
+                    failed++
+                }
+            }
+            scanMedia(filePaths(restored))
+            if (failed > 0) throw IOException("$failed item(s) could not be restored")
+            emptyList()
+        }
+    }
+
+    /** Removes things from the Bin for good. */
+    fun deleteForever(entries: List<BinEntry>) {
+        start(OperationKind.DELETE, entries.map { it.item }, measure = { 0L }) { job ->
+            job.delete(entries.map { it.folder })
+            emptyList()
+        }
+    }
+
     fun zip(paths: List<String>, destDir: String, zipName: String) {
         val sources = paths.map(::File)
         val zipFile = File(destDir, FileNames.unique(zipName, isDirectory = false) { File(destDir, it).exists() })
@@ -126,10 +182,16 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
         kind: OperationKind,
         sources: List<File>,
         measure: (FileJob) -> Long,
+        binned: List<BinEntry> = emptyList(),
         work: (FileJob) -> List<File>,
     ) {
         if (_progress.value != null || sources.isEmpty()) return
         _progress.value = OperationProgress(kind, sources.size, "", 0, 0)
+        // Work that goes on for more than a moment shows a notification, so Android lets it finish after you leave the app.
+        scope.launch {
+            delay(SERVICE_DELAY_MS)
+            if (_progress.value != null) FileOperationService.start(context)
+        }
         scope.launch(Dispatchers.IO) {
             var done = 0L
             var lastUpdate = 0L
@@ -150,13 +212,13 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
             )
             running = job
             // Media index entries for what's about to move or disappear, gathered before it does.
-            val before = if (kind == OperationKind.MOVE || kind == OperationKind.DELETE) filePaths(sources) else emptyList()
+            val before = if (kind == OperationKind.MOVE || kind == OperationKind.DELETE || kind == OperationKind.TRASH) filePaths(sources) else emptyList()
             var outputs = emptyList<File>()
             val result = try {
                 val total = runCatching { measure(job) }.getOrDefault(0L)
                 _progress.update { it?.copy(totalBytes = total) }
                 outputs = work(job)
-                OperationResult.Done(kind, sources.size, outputs.singleOrNull())
+                OperationResult.Done(kind, sources.size, outputs.singleOrNull(), binned)
             } catch (_: CancellationException) {
                 OperationResult.Cancelled(kind)
             } catch (_: IntoItselfException) {
@@ -202,6 +264,7 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
 
     private companion object {
         const val PROGRESS_INTERVAL_MS = 150L
+        const val SERVICE_DELAY_MS = 800L
         const val MAX_SCAN = 2000
     }
 }

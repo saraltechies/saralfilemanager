@@ -109,11 +109,11 @@ private fun FileCell(item: FileItem, selected: Boolean, onClick: () -> Unit, onL
             .clip(RoundedCornerShape(12.dp))
             .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(8.dp),
+            .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { FileIcon(item, selected, size = 72.dp, rounded = true) }
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { FileIcon(item, selected, size = 88.dp, rounded = true) }
         Text(
             item.name,
             style = MaterialTheme.typography.bodySmall,

@@ -1,5 +1,6 @@
 package com.saraltechies.saralfilemanager.ui.components
 
+import com.saraltechies.saralfilemanager.files.Bin
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -90,18 +91,23 @@ private fun FileNames.Problem.message(): Int = when (this) {
 }
 
 @Composable
-fun ConfirmDeleteDialog(names: List<String>, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun ConfirmDeleteDialog(names: List<String>, onConfirm: () -> Unit, onDismiss: () -> Unit, toBin: Boolean = false) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                if (names.size == 1) stringResource(R.string.delete_one_title, names[0])
-                else pluralStringResource(R.plurals.delete_many_title, names.size, names.size),
+                when {
+                    names.size == 1 -> stringResource(if (toBin) R.string.bin_one_title else R.string.delete_one_title, names[0])
+                    toBin -> pluralStringResource(R.plurals.bin_many_title, names.size, names.size)
+                    else -> pluralStringResource(R.plurals.delete_many_title, names.size, names.size)
+                },
             )
         },
-        text = { Text(stringResource(R.string.delete_message)) },
+        text = { Text(if (toBin) stringResource(R.string.bin_message, Bin.KEEP_DAYS) else stringResource(R.string.delete_message)) },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(if (toBin) R.string.bin_move else R.string.delete), color = MaterialTheme.colorScheme.error)
+            }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
