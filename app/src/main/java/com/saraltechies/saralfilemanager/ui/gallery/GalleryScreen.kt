@@ -1,11 +1,9 @@
 package com.saraltechies.saralfilemanager.ui.gallery
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
@@ -86,6 +84,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -342,7 +341,6 @@ private fun GallerySort.label(): Int = when (this) {
     GallerySort.NAME -> R.string.gallery_sort_name
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PhotoGrid(
     items: List<MediaFile>,
@@ -451,10 +449,11 @@ private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.dragToSe
     thresholdPx: Float,
     onStart: () -> Unit,
 ) {
+    val indexOf = order.withIndex().associate { (i, path) -> path to i }
     fun itemAt(point: Offset): Int? = state.layoutInfo.visibleItemsInfo.firstOrNull { info ->
         val p = IntOffset(point.x.toInt(), point.y.toInt()) - info.offset
         p.x in 0 until info.size.width && p.y in 0 until info.size.height
-    }?.key?.let { key -> (key as? String)?.let(order::indexOf) }?.takeIf { it >= 0 }
+    }?.key?.let { indexOf[it] }
 
     var start = -1
     var before = emptySet<String>()
@@ -521,7 +520,6 @@ private fun dayLabel(date: LocalDate): String {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PhotoCell(
     media: MediaFile,
@@ -541,8 +539,13 @@ private fun PhotoCell(
             .semantics {
                 contentDescription = name
                 this.selected = selected
+                // The grid handles the real long press, so it can carry on into a drag; this is for screen readers.
+                onLongClick {
+                    onLongClick()
+                    true
+                }
             }
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+            .clickable(onClick = onClick),
     ) {
         Thumbnail(media.item, media.id, category, columns, Modifier.fillMaxSize().padding(if (selected) 10.dp else 0.dp).clip(if (selected) RoundedCornerShape(8.dp) else RoundedCornerShape(0.dp)))
         if (category == FileCategory.VIDEO || media.durationMs > 0) {

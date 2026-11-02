@@ -161,7 +161,10 @@ class GalleryAndBinTest {
                 node("off.jpg").performTouchInput { longClick() }
                 waitFor(hasContentDescription(s(R.string.delete)))
                 click(s(R.string.delete))
-                click(s(R.string.delete))
+                // The dialog's button, not the one behind it in the top bar.
+                val inDialog = hasText(s(R.string.delete)) and hasClickAction()
+                waitFor(inDialog)
+                compose.onAllNodes(inDialog).onFirst().performClick()
                 waitUntil("deleted") { !photo.exists() }
                 assertFalse(binned().contains("off.jpg"))
             }

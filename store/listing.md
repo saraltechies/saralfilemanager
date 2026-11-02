@@ -1,6 +1,6 @@
 # Saral File Manager – Google Play store listing (en-IN / en-US)
 
-Every claim below matches the code as of 1.1.1. Re-check before each release.
+Every claim below matches the code as of 1.2.0. Re-check before each release.
 
 ## App name (max 30)
 Saral File Manager
@@ -49,6 +49,18 @@ MANAGE FILES
 ZIP AND UNZIP
 • Compress files and folders into a zip
 • Tap a zip to extract it into a new folder
+
+PHOTOS AND VIDEOS
+• Thumbnail gallery by date, or as albums; pinch to change the size
+• Select one, many or all: drag across photos, or tap a day to select it all
+• Swipe through photos and play videos right here, without another app
+
+A BIN FOR DELETED FILES
+• Deleted files stay in the Bin for 30 days, with Undo right after
+• Restore them, or empty the Bin to free the space
+
+LONG COPIES KEEP GOING
+• Copies and moves carry on after you leave the app, with a notification
 
 SEARCH
 • Find files and folders by name in any folder and everything inside it, as you type
