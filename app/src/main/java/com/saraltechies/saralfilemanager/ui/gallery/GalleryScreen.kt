@@ -3,11 +3,12 @@ package com.saraltechies.saralfilemanager.ui.gallery
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,17 +75,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -358,9 +356,11 @@ private fun PhotoGrid(
     val days = remember(items, byDay) { if (byDay) Gallery.days(items) else emptyList() }
     val speed = remember { mutableFloatStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 64.dp.toPx() }
-    val haptics = LocalHapticFeedback.current
     val current = selection.get()
     val selecting = current.isNotEmpty()
+    val drag = remember { DragState() }
+    val orderNow by rememberUpdatedState(order)
+    val indexNow by rememberUpdatedState(indexOf)
     val columnsNow by rememberUpdatedState(columns)
     val onColumnsNow by rememberUpdatedState(onColumns)
 
@@ -378,24 +378,40 @@ private fun PhotoGrid(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                // Two fingers change the number of columns; one finger is left alone for scrolling and tapping.
+                // Sees the fingers before anything else does. Two fingers change the number of columns. After a long
+                // press has picked a photo (see drag), one finger selects as it moves, instead of scrolling.
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     var zoom = 1f
                     do {
                         val event = awaitPointerEvent(PointerEventPass.Initial)
-                        if (event.changes.count { it.pressed } >= 2) {
+                        val fingers = event.changes.filter { it.pressed }
+                        if (fingers.size >= 2) {
                             zoom *= event.calculateZoom()
                             event.changes.forEach { it.consume() }
                             if (zoom > 1.3f || zoom < 0.77f) {
                                 onColumnsNow(Gallery.columns(columnsNow + if (zoom > 1f) -1 else 1))
                                 zoom = 1f
                             }
+                        } else if (drag.start >= 0 && fingers.isNotEmpty()) {
+                            val at = fingers[0].position
+                            event.changes.forEach { it.consume() }
+                            val fromBottom = state.layoutInfo.viewportSize.height - at.y
+                            speed.floatValue = when {
+                                fromBottom < thresholdPx -> thresholdPx - fromBottom
+                                at.y < thresholdPx -> -(thresholdPx - at.y)
+                                else -> 0f
+                            }
+                            itemAt(state, at)?.let { key ->
+                                val to = indexNow[key] ?: return@let
+                                selection.set(Gallery.dragSelection(orderNow, drag.before, drag.start, to))
+                            }
                         }
                     } while (event.changes.any { it.pressed })
+                    drag.start = -1
+                    speed.floatValue = 0f
                 }
-            }
-            .pointerInput(order) { dragToSelect(state, order, selection, speed, thresholdPx) { haptics.performHapticFeedback(HapticFeedbackType.LongPress) } },
+            },
         contentPadding = PaddingValues(bottom = 88.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -412,7 +428,11 @@ private fun PhotoGrid(
                     if (selecting) selection.set(toggle(current, media.path))
                     else onOpen(indexOf[media.path] ?: 0)
                 },
-                onLongClick = { selection.set(current + media.path) },
+                onLongClick = {
+                    drag.before = current
+                    drag.start = indexOf[media.path] ?: -1
+                    selection.set(current + media.path)
+                },
             )
         }
         if (byDay) {
@@ -441,53 +461,16 @@ private fun PhotoGrid(
     }
 }
 
-private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.dragToSelect(
-    state: LazyGridState,
-    order: List<String>,
-    selection: SelectionHolder,
-    speed: androidx.compose.runtime.MutableFloatState,
-    thresholdPx: Float,
-    onStart: () -> Unit,
-) {
-    val indexOf = order.withIndex().associate { (i, path) -> path to i }
-    fun itemAt(point: Offset): Int? = state.layoutInfo.visibleItemsInfo.firstOrNull { info ->
-        val p = IntOffset(point.x.toInt(), point.y.toInt()) - info.offset
-        p.x in 0 until info.size.width && p.y in 0 until info.size.height
-    }?.key?.let { indexOf[it] }
-
+/** Where a press-and-drag began, and what was selected before it. */
+private class DragState {
     var start = -1
-    var before = emptySet<String>()
-    detectDragGesturesAfterLongPress(
-        onDragStart = { offset ->
-            itemAt(offset)?.let { index ->
-                start = index
-                before = selection.get()
-                selection.set(before + order[index])
-                onStart()
-            }
-        },
-        onDragEnd = {
-            start = -1
-            speed.floatValue = 0f
-        },
-        onDragCancel = {
-            start = -1
-            speed.floatValue = 0f
-        },
-        onDrag = { change, _ ->
-            if (start >= 0) {
-                val y = change.position.y
-                val fromBottom = state.layoutInfo.viewportSize.height - y
-                speed.floatValue = when {
-                    fromBottom < thresholdPx -> thresholdPx - fromBottom
-                    y < thresholdPx -> -(thresholdPx - y)
-                    else -> 0f
-                }
-                itemAt(change.position)?.let { selection.set(Gallery.dragSelection(order, before, start, it)) }
-            }
-        },
-    )
+    var before: Set<String> = emptySet()
 }
+
+private fun itemAt(state: LazyGridState, point: Offset): String? = state.layoutInfo.visibleItemsInfo.firstOrNull { info ->
+    val p = IntOffset(point.x.toInt(), point.y.toInt()) - info.offset
+    p.x in 0 until info.size.width && p.y in 0 until info.size.height
+}?.key as? String
 
 @Composable
 private fun DayHeader(date: LocalDate, allSelected: Boolean, onToggle: () -> Unit) {
@@ -520,6 +503,7 @@ private fun dayLabel(date: LocalDate): String {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PhotoCell(
     media: MediaFile,
@@ -539,13 +523,8 @@ private fun PhotoCell(
             .semantics {
                 contentDescription = name
                 this.selected = selected
-                // The grid handles the real long press, so it can carry on into a drag; this is for screen readers.
-                onLongClick {
-                    onLongClick()
-                    true
-                }
             }
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
     ) {
         Thumbnail(media.item, media.id, category, columns, Modifier.fillMaxSize().padding(if (selected) 10.dp else 0.dp).clip(if (selected) RoundedCornerShape(8.dp) else RoundedCornerShape(0.dp)))
         if (category == FileCategory.VIDEO || media.durationMs > 0) {

@@ -7,7 +7,13 @@ Free and open source (GPL-3.0). No ads, no account, and no internet permission: 
 [<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80">](https://play.google.com/store/apps/details?id=com.saraltechies.saralfilemanager)
 -->
 
-## Features (1.1)
+## Features (1.2)
+
+- **Gallery** for images and videos: edge-to-edge thumbnails grouped by day and month, or as albums by folder. Pinch to change the columns (Images and Videos each remember their own), sort by newest, oldest, largest, smallest or name, and filter by file type. Videos show a play badge and their length. No limit on how many files are listed.
+- **Selecting many**: long-press to start, then tap; press, hold and drag across photos; tap a day's heading to select that day; Select all and Invert. Photos stay visible while selected, and the top bar shows the count and total size.
+- **Viewer**: swipe through photos and videos without leaving the app, pinch or double-tap to zoom, play videos with Android's built-in player, and share, delete or see details from there.
+- **Bin**: deleted files stay for 30 days in a hidden folder on their own storage, with Undo right after deleting, then restore or delete forever. It can be turned off. Free up space deletes straight away, as that's its purpose, and shows what's in the Bin.
+- **Long copies keep going**: copy, move, zip, extract and delete run in a foreground service with a progress notification and Cancel, so Android doesn't stop them when you leave the app.
 
 - **Home**: every storage volume (internal storage, SD card, USB drive) with its used and total space; tiles for Downloads, images, videos, audio, documents, apps, archives and APK files, each with its size and file count; quick access to Screenshots, Camera and Documents; bookmarked folders; recently changed files.
 - **Free up space**: duplicate files (grouped; the oldest copy is kept and the others are ticked), files of 100 MB or more, screenshots older than 30 days, the Download folder, and apps not opened in 30 days. Nothing is deleted until you confirm.
@@ -30,6 +36,7 @@ Free and open source (GPL-3.0). No ads, no account, and no internet permission: 
 | 11 and newer | **All files access** (`MANAGE_EXTERNAL_STORAGE`), switched on by the user in Settings | A file manager has to see and change every file and folder in shared storage. This is one of the uses Google Play allows. |
 | 8 to 10 | `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE` | Same, with the older permission dialog. |
 | all | **Usage access** (`PACKAGE_USAGE_STATS`), optional, switched on by the user in Settings | Full app sizes (data and cache) and last-used dates on the Apps and Free up space screens. Without it, installer sizes are shown. |
+| all | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `POST_NOTIFICATIONS` | Long copies and moves keep going after you leave the app, with a progress notification. Notification permission is asked the first time. |
 | all | `REQUEST_DELETE_PACKAGES` | Opens Android's own uninstall prompt; Android asks the user to confirm each app. |
 
 The Apps screen lists launcher apps through a `<queries>` entry for the launcher intent, so the app doesn't need `QUERY_ALL_PACKAGES`.
