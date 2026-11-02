@@ -62,6 +62,7 @@ import com.saraltechies.saralfilemanager.apps.AppsRepository
 import com.saraltechies.saralfilemanager.clean.CleanKind
 import com.saraltechies.saralfilemanager.clean.CleanSuggestion
 import com.saraltechies.saralfilemanager.clean.Cleaner
+import androidx.compose.material.icons.filled.Delete
 import com.saraltechies.saralfilemanager.files.BinEntry
 import com.saraltechies.saralfilemanager.files.FileOperations
 import com.saraltechies.saralfilemanager.files.FileRepository

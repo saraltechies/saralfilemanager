@@ -45,9 +45,12 @@ jobs:
             # All files access and usage access, as a person would switch them on in Settings.
             adb shell appops set --uid com.saraltechies.saralfilemanager.debug MANAGE_EXTERNAL_STORAGE allow
             adb shell appops set com.saraltechies.saralfilemanager.debug GET_USAGE_STATS allow
+            adb shell pm grant com.saraltechies.saralfilemanager.debug android.permission.POST_NOTIFICATIONS || true
+            adb shell am instrument -w -e class com.saraltechies.saralfilemanager.GalleryAndBinTest com.saraltechies.saralfilemanager.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrument-gallery.txt
             adb shell am instrument -w -e class com.saraltechies.saralfilemanager.StoreScreenshotsTest com.saraltechies.saralfilemanager.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrument.txt
             mkdir -p screenshots
             adb pull /sdcard/Android/data/com.saraltechies.saralfilemanager.debug/files/screenshots/. screenshots/ || true
+            grep -q "OK (" instrument-gallery.txt
             grep -q "OK (" instrument.txt
       - uses: actions/upload-artifact@v7
         if: always()

@@ -142,7 +142,14 @@ object Thumbnails {
 
     /** Phones store a turned photo as it was taken, with a note saying which way is up. */
     private fun upright(file: File, bitmap: Bitmap): Bitmap {
-        val degrees = runCatching { ExifInterface(file.path).rotationDegrees }.getOrDefault(0)
+        val degrees = runCatching {
+            when (ExifInterface(file.path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        }.getOrDefault(0)
         if (degrees == 0) return bitmap
         val turned = Matrix().apply { postRotate(degrees.toFloat()) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, turned, true)
