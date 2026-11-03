@@ -7,7 +7,10 @@ import android.graphics.Paint
 import android.graphics.Shader
 import android.media.MediaScannerConnection
 import android.os.Environment
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -19,6 +22,7 @@ import androidx.compose.ui.test.printToString
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.saraltechies.saralfilemanager.files.Bin
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -82,7 +86,41 @@ class StoreScreenshotsTest {
             click(s(R.string.gallery_albums))
             settle(2_000)
             shot("7-albums")
+            click(s(R.string.gallery_albums))
+            settle(2_000)
+
+            // Selecting many: the photos stay visible, with the count and total size on top.
+            photo(0).performTouchInput { longClick() }
+            settle()
+            (1..5).forEach {
+                photo(it).performClick()
+                settle(300)
+            }
+            settle(1_000)
+            shot("8-selected")
+            click(s(R.string.clear_selection))
+
+            // The viewer.
+            photo(2).performClick()
+            settle(3_000)
+            shot("9-viewer")
+            back()
+            back()
+
+            // The Bin, with what was put there before the app opened.
+            click(s(R.string.more_options))
+            click(s(R.string.bin_title))
+            settle(3_000)
+            shot("10-bin")
         }
+    }
+
+    private fun photoName(i: Int) = "IMG_202610%02d_1%02d512.jpg".format(1 + i % 28, i)
+
+    private fun photo(i: Int): SemanticsNodeInteraction {
+        val matcher = hasContentDescription(photoName(i))
+        compose.waitUntil(15_000) { compose.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty() }
+        return compose.onAllNodes(matcher).onFirst()
     }
 
     /** Invented files; returns their paths for the media scanner. */
@@ -97,7 +135,7 @@ class StoreScreenshotsTest {
         )
         val photos = (0 until 24).map { i ->
             val (a, b) = colors[i % colors.size]
-            val f = File(camera, "IMG_202610%02d_1%02d512.jpg".format(1 + i % 28, i))
+            val f = File(camera, photoName(i))
             photo(f, a.toInt(), b.toInt(), i)
             f.setLastModified(now - i * day / 2)
             f
@@ -137,6 +175,12 @@ class StoreScreenshotsTest {
         }
         listOf("Train ticket.pdf", "Bank statement Sep.pdf", "Photos backup.zip", "Invoice 4471.pdf").forEachIndexed { i, name ->
             made += blob(File(root, "Download/$name"), (300L + i * 900) * 1024, now - (2 + i * 9) * day, random = true)
+        }
+
+        // Some things already in the Bin, deleted a few days ago.
+        listOf("Old invoice 3921.pdf", "Flight ticket Mar.pdf", "Notes 2025.docx").forEachIndexed { i, name ->
+            val path = blob(File(root, "Documents/$name"), (240L + i * 310) * 1024, now - 40 * day, random = true)
+            Bin.moveIn(File(path), root, now = now - (2 + i * 4) * day)
         }
         return made
     }
