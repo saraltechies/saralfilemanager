@@ -210,7 +210,7 @@ fun HomeScreen(
                 items(recent.take(RECENT_ON_HOME), key = { "recent:${it.path}" }) { item ->
                     FileRow(item, selected = false, showFolder = true, onClick = {
                         if (!FileIntents.open(context, item.file)) {
-                            scope.launch { snackbar.showSnackbar(context.getString(R.string.no_app_to_open)) }
+                            scope.launch { snackbar.showSnackbar(context.getString(FileIntents.cantOpenMessage(item.file))) }
                         }
                     }, onLongClick = { onOpenFolder(item.file.parent ?: primary.path) })
                 }
