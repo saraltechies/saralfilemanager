@@ -28,6 +28,7 @@ import com.saraltechies.saralfilemanager.files.FileCategory
 import com.saraltechies.saralfilemanager.files.Gallery
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -52,6 +53,13 @@ class GalleryAndBinTest {
     private val root = Environment.getExternalStorageDirectory()
     private val out get() = File(context.getExternalFilesDir(null), "screenshots").apply { mkdirs() }
     private fun s(id: Int) = context.getString(id)
+
+    /** So these test photos can't show up in the store screenshots, which run next on the same emulator. */
+    @After
+    fun cleanUp() {
+        File(root, "Pictures/GalleryTest").deleteRecursively()
+        File(root, Bin.FOLDER).deleteRecursively()
+    }
 
     private fun photo(name: String, color: Int): File {
         val file = File(root, "Pictures/GalleryTest/$name")
