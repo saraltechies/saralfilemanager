@@ -11,9 +11,11 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -23,7 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.saraltechies.saralfilemanager.R
 
 /** The top bar while items are selected: count, the common actions, and more in [menu]. */
@@ -42,24 +47,44 @@ fun SelectionTopBar(
     menu: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
+    // Five icons leave too little room for the count on many phones, so Copy and Cut move into the menu.
+    val icons = if (onShare != null) 5 else 4
+    val roomForTitle = LocalConfiguration.current.screenWidthDp - NAVIGATION_ICON_DP - icons * ICON_DP
+    val narrow = roomForTitle < TITLE_NEEDS_DP * LocalDensity.current.fontScale
     TopAppBar(
         title = {
             Column {
-                Text(stringResource(R.string.selected_count, count), maxLines = 1)
-                if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                Text(
+                    stringResource(R.string.selected_count, count),
+                    style = if (narrow) MaterialTheme.typography.titleMedium else LocalTextStyle.current,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         },
         navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Filled.Close, stringResource(R.string.clear_selection)) } },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         actions = {
-            IconButton(onClick = onCopy) { Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy)) }
-            IconButton(onClick = onCut) { Icon(Icons.Filled.ContentCut, stringResource(R.string.cut)) }
+            if (!narrow) {
+                IconButton(onClick = onCopy) { Icon(Icons.Filled.ContentCopy, stringResource(R.string.copy)) }
+                IconButton(onClick = onCut) { Icon(Icons.Filled.ContentCut, stringResource(R.string.cut)) }
+            }
             if (onShare != null) IconButton(onClick = onShare) { Icon(Icons.Filled.Share, stringResource(R.string.share)) }
             IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, stringResource(R.string.delete)) }
             Box {
                 IconButton(onClick = { open = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options)) }
-                DropdownMenu(expanded = open, onDismissRequest = { open = false }) { menu { open = false } }
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                    if (narrow) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.copy)) }, onClick = { open = false; onCopy() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.cut)) }, onClick = { open = false; onCut() })
+                    }
+                    menu { open = false }
+                }
             }
         },
     )
 }
+
+private const val NAVIGATION_ICON_DP = 56
+private const val ICON_DP = 48
+private const val TITLE_NEEDS_DP = 110

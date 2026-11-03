@@ -184,6 +184,7 @@
     <string name="error_into_itself">A folder can\'t be copied or moved into itself</string>
     <string name="error_no_space">Not enough storage space</string>
     <string name="error_not_allowed">Android doesn\'t allow changes here</string>
+    <string name="error_busy">Another file task is running. Try again when it finishes.</string>
     <string name="error_operation_failed">Something went wrong. Some items may not have been changed.</string>
     <string name="name_taken">Something with that name is already here</string>
     <string name="couldnt_rename">Couldn\'t rename</string>
@@ -231,6 +232,7 @@
         <item quantity="one">Delete %1$d file · free %2$s</item>
         <item quantity="other">Delete %1$d files · free %2$s</item>
     </plurals>
+    <string name="clean_keep_one">One copy always stays, so you don\'t lose the file.</string>
     <string name="clean_list_hint">Tap to select. Touch and hold to open.</string>
     <string name="clean_select_none">Select none</string>
 

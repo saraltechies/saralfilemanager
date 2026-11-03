@@ -21,6 +21,33 @@ class DuplicatesTest {
             setLastModified(modified)
         }
 
+    private fun suggestion(kind: CleanKind): CleanSuggestion {
+        val bytes = Random(9).nextBytes(100)
+        val group = listOf("a", "b", "c").map { com.saraltechies.saralfilemanager.files.FileItem.from(file("$kind/$it.jpg", bytes, 1_000)) }
+        return CleanSuggestion(kind, listOf(group), group.drop(1).map { it.path }.toSet())
+    }
+
+    @Test
+    fun selectAllLeavesOneCopyOfDuplicates() {
+        val s = suggestion(CleanKind.DUPLICATES)
+        assertEquals(s.preselected, s.selectable)
+    }
+
+    @Test
+    fun theLastCopyCanNeverBeTicked() {
+        val s = suggestion(CleanKind.DUPLICATES)
+        val all = s.files.map { it.path }.toSet()
+        assertEquals(2, s.keepingOneCopy(all).size)
+        val notFirst = all - s.files.first().path
+        assertEquals(notFirst, s.keepingOneCopy(notFirst))
+    }
+
+    @Test
+    fun otherListsCanBeTickedCompletely() {
+        val s = suggestion(CleanKind.LARGE)
+        assertEquals(s.files.map { it.path }.toSet(), s.selectable)
+    }
+
     @Test
     fun findsCopiesAndKeepsTheOldest() {
         val photo = Random(1).nextBytes(50_000)
