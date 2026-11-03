@@ -24,7 +24,7 @@ instrument() { # name, class or class#method
   if grep -q "OK (" "$OUT/test-$1.txt"; then echo "PASS $1" >> "$OUT/summary.txt"; else echo "FAIL $1" >> "$OUT/summary.txt"; fi
 }
 
-./gradlew installDebug installDebugAndroidTest --stacktrace
+./gradlew installDebug installDebugAndroidTest --stacktrace || echo "FAIL tests-did-not-build" >> "$OUT/summary.txt"
 adb logcat -G 16M || true
 allow "$DEBUG"
 
