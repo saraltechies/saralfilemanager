@@ -9,8 +9,6 @@ import android.media.MediaScannerConnection
 import android.os.Environment
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.longClick
-import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -90,12 +88,7 @@ class StoreScreenshotsTest {
             settle(2_000)
 
             // Selecting many: the photos stay visible, with the count and total size on top.
-            photo(0).performTouchInput { longClick() }
-            settle()
-            (1..5).forEach {
-                photo(it).performClick()
-                settle(300)
-            }
+            click(s(R.string.gallery_select_day).format(s(R.string.gallery_yesterday)))
             settle(1_000)
             shot("8-selected")
             click(s(R.string.clear_selection))
