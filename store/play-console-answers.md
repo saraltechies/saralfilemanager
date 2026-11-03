@@ -63,7 +63,7 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - Data safety stays **No data collected**: the app list and usage are read on the device and never sent.
 
 ## Permissions added in 1.2.0
-- `FOREGROUND_SERVICE_DATA_SYNC`: Play Console → App content → **Foreground service permissions** asks about it. Choose **Data sync**, and describe: "When the user copies, moves, compresses or extracts files, the work continues in the background so it isn't lost when they leave the app. It shows a notification with progress and Cancel, and stops when the work is done. Files stay on the device." It may ask for a video of this.
+- `FOREGROUND_SERVICE_DATA_SYNC`: Play Console → App content → **Foreground service permissions**. Tick **Local processing → Other** and give a video link, which is required. Declared with https://www.youtube.com/watch?v=Z4YoG0Bnsjk (unlisted, recorded on an emulator; the file is in the OneDrive Digital Marketing folder under Saral Apps/SaralFileManager/Play Console). Reuse it unless the way this works changes.
 - `POST_NOTIFICATIONS`: asked the first time a file operation runs, for that progress notification.
 - Data safety stays **No data collected**. The Bin is a hidden folder on the phone's own storage.
 
