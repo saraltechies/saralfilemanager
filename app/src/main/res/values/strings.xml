@@ -190,6 +190,7 @@
     <string name="couldnt_rename">Couldn\'t rename</string>
     <string name="couldnt_create">Couldn\'t create it here</string>
     <string name="couldnt_share">Couldn\'t share these files</string>
+    <string name="apk_cant_install">To install this app, open it from your phone\'s own Files app.</string>
     <string name="no_app_to_open">No app on this phone can open this file</string>
     <!-- Home: category tiles with sizes, and freeing up space -->
     <string name="tile_apps">Apps</string>
