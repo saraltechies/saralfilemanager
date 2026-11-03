@@ -159,6 +159,8 @@ class AppCheckTest {
             it.onActivity { a2 -> a2.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
             settle(3_000)
             shot("$tag-5-landscape")
+            assertTrue("The video should keep playing when the phone turns", onScreen() < 0)
+            log("$tag: kept playing after turning")
             it.onActivity { a2 -> a2.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
             settle(2_000)
             shot("$tag-6-back-to-portrait")
