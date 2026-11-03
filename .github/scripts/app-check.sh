@@ -19,9 +19,27 @@ allow() {
 instrument() { # name, class or class#method
   echo "=== $1"
   adb logcat -c || true
-  adb shell am instrument -w -e class "$2" "$RUNNER" 2>&1 | tee "$OUT/test-$1.txt"
+  timeout 480 adb shell am instrument -w -e class "$2" "$RUNNER" 2>&1 | tee "$OUT/test-$1.txt"
+  local code=${PIPESTATUS[0]}
   adb logcat -d -b crash > "$OUT/crash-$1.txt" 2>&1 || true
-  if grep -q "OK (" "$OUT/test-$1.txt"; then echo "PASS $1" >> "$OUT/summary.txt"; else echo "FAIL $1" >> "$OUT/summary.txt"; fi
+  if [ "$code" = "124" ]; then
+    # Stuck: keep what the app was doing, then move on so the other checks still run.
+    echo "HANG $1" >> "$OUT/summary.txt"
+    adb shell dumpsys activity top > "$OUT/hang-$1-top.txt" 2>&1 || true
+    adb shell dumpsys window windows > "$OUT/hang-$1-windows.txt" 2>&1 || true
+    adb shell screencap -p /sdcard/hang.png && adb pull /sdcard/hang.png "$OUT/hang-$1.png" || true
+    adb root || true
+    sleep 4
+    adb shell "kill -3 \$(pidof $DEBUG)" || true
+    sleep 4
+    mkdir -p "$OUT/hang-$1-traces"
+    adb pull /data/anr/. "$OUT/hang-$1-traces/" || true
+    adb logcat -d > "$OUT/hang-$1-logcat.txt" 2>&1 || true
+    adb shell am force-stop "$DEBUG" || true
+    adb unroot || true
+    sleep 4
+  elif grep -q "OK (" "$OUT/test-$1.txt"; then echo "PASS $1" >> "$OUT/summary.txt"
+  else echo "FAIL $1" >> "$OUT/summary.txt"; fi
 }
 
 ./gradlew installDebug installDebugAndroidTest --stacktrace || echo "FAIL tests-did-not-build" >> "$OUT/summary.txt"
@@ -45,7 +63,10 @@ adb push check-video.mp4 /sdcard/DCIM/Camera/check-video.mp4
 CHECK=com.saraltechies.saralfilemanager.AppCheckTest
 instrument gallery-and-bin com.saraltechies.saralfilemanager.GalleryAndBinTest
 instrument every-screen "$CHECK#everyMainScreen"
+# Three times: Android 16 stalled here once and passed in the run before.
 instrument video "$CHECK#videoReallyPlays"
+instrument video-again "$CHECK#videoReallyPlays"
+instrument video-third "$CHECK#videoReallyPlays"
 instrument video-odd-name "$CHECK#videoWithOddNamePlays"
 instrument drag "$CHECK#dragSelectsInSmallSteps"
 instrument awkward-files "$CHECK#awkwardFiles"

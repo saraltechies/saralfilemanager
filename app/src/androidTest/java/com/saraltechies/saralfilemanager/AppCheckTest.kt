@@ -138,7 +138,7 @@ class AppCheckTest {
             val play = hasContentDescription(s(R.string.viewer_play)) and hasClickAction()
             waitFor(play)
             val width = compose.onAllNodes(isRoot()).onFirst().fetchSemanticsNode().boundsInRoot.width
-            fun onScreen() = compose.onAllNodes(play).fetchSemanticsNodes().indexOfFirst { n -> n.boundsInRoot.center.x in 0f..width }
+            fun onScreen() = compose.onAllNodes(play).fetchSemanticsNodes().indexOfFirst { n -> n.boundsInRoot.width > 1f && n.boundsInRoot.center.x in 1f..(width - 1f) }
             compose.onAllNodes(play)[onScreen()].performClick()
             // The test framework only updates the screen while it's waiting, so a plain sleep wouldn't start the video.
             settle(3_000)
@@ -398,11 +398,12 @@ class AppCheckTest {
     /** Scrolls the home screen until [text] is properly on screen, since a tap on something off screen does nothing. */
     private fun scrollHomeTo(text: String) {
         val root = compose.onAllNodes(isRoot()).onFirst()
+        val height = root.fetchSemanticsNode().boundsInRoot.height
+        // Starts below the app bar, which doesn't scroll the list.
         repeat(4) {
-            root.performTouchInput { swipeDown() }
+            root.performTouchInput { swipe(androidx.compose.ui.geometry.Offset(center.x, height * 0.3f), androidx.compose.ui.geometry.Offset(center.x, height * 0.9f), 150) }
             settle(300)
         }
-        val height = root.fetchSemanticsNode().boundsInRoot.height
         val matcher = hasText(text, substring = true) and hasClickAction()
         repeat(12) {
             val onScreen = compose.onAllNodes(matcher).fetchSemanticsNodes().any { it.boundsInRoot.top > height * 0.12f && it.boundsInRoot.bottom < height * 0.88f }
