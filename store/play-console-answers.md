@@ -86,6 +86,7 @@ Play Console asks for this under **App content → Permissions declaration** (or
   • Clearer selection bar and search on small screens
   • Long copies keep going if you leave the app straight away
   • Tapping the back arrow twice no longer leaves a blank screen
+  • Tapping an APK file now tells you how to install it
   </en-IN>
   ```
 - Release notes for 1.2.0 (en-IN):

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
+import com.saraltechies.saralfilemanager.R
 import java.io.File
 
 /** Hands files to other apps through content:// links from our FileProvider (see res/xml/file_paths.xml). */
@@ -17,8 +18,14 @@ object FileIntents {
     fun mimeType(file: File): String =
         MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase()) ?: "*/*"
 
-    /** Opens [file] in the app the person uses for its type. False when no app can open it. */
-    fun open(context: Context, file: File, chooser: Boolean = false): Boolean = attempt(context) {
+    /** Android only lets an app pass an APK to its installer with the install permission, which this app doesn't have. */
+    private fun isInstaller(file: File) = file.extension.equals("apk", ignoreCase = true)
+
+    /** What to say when [open] returns false. */
+    fun cantOpenMessage(file: File): Int = if (isInstaller(file)) R.string.apk_cant_install else R.string.no_app_to_open
+
+    /** Opens [file] in the app the person uses for its type. False when it can't be opened that way. */
+    fun open(context: Context, file: File, chooser: Boolean = false): Boolean = (chooser || !isInstaller(file)) && attempt(context) {
         val intent = Intent(Intent.ACTION_VIEW)
             .setDataAndType(uri(context, file), mimeType(file))
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)

@@ -67,7 +67,7 @@ class FileActions(
     }
 
     fun open(file: File, chooser: Boolean = false) {
-        if (!FileIntents.open(context, file, chooser)) say(R.string.no_app_to_open)
+        if (!FileIntents.open(context, file, chooser)) say(FileIntents.cantOpenMessage(file))
     }
 
     fun share(items: List<FileItem>) {

@@ -352,7 +352,11 @@ fun CleanListScreen(
                                 selected = if (allowed == wanted) wanted else ticked
                                 if (allowed != wanted) scope.launch { snackbar.showSnackbar(keepOneMessage) }
                             },
-                            onLongClick = { FileIntents.open(context, item.file) },
+                            onLongClick = {
+                                if (!FileIntents.open(context, item.file)) {
+                                    scope.launch { snackbar.showSnackbar(context.getString(FileIntents.cantOpenMessage(item.file))) }
+                                }
+                            },
                         )
                     }
                 }
