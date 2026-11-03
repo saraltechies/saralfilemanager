@@ -71,6 +71,13 @@ instrument video-odd-name "$CHECK#videoWithOddNamePlays"
 instrument drag "$CHECK#dragSelectsInSmallSteps"
 instrument awkward-files "$CHECK#awkwardFiles"
 instrument rebuilt "$CHECK#selectionAndViewerSurviveBeingRebuilt"
+instrument fix-duplicates "com.saraltechies.saralfilemanager.FixCheckTest#duplicatesRefuseTheLastCopy"
+instrument fix-long-copy "com.saraltechies.saralfilemanager.FixCheckTest#longCopyShowsNotificationRefusesOthersAndSurvivesHome"
+instrument fix-bad-zip "com.saraltechies.saralfilemanager.FixCheckTest#zipWithBadNamesDoesNotCrash"
+instrument fix-folder-search "com.saraltechies.saralfilemanager.FixCheckTest#folderSelectionSurvivesRebuildAndSearchWorks"
+instrument find-apk-tap "com.saraltechies.saralfilemanager.FixCheckTest#whatTappingAnApkDoes"
+instrument find-double-back "com.saraltechies.saralfilemanager.FixCheckTest#doubleTapOnBackArrow"
+instrument find-apps-menu "com.saraltechies.saralfilemanager.FixCheckTest#appsMenuOffersSystemApps"
 instrument varied-files com.saraltechies.saralfilemanager.StoreScreenshotsTest
 instrument big-library "$CHECK#bigLibraryAndBigFolder"
 adb shell dumpsys gfxinfo "$DEBUG" > "$OUT/gfxinfo-debug.txt" 2>&1 || true
