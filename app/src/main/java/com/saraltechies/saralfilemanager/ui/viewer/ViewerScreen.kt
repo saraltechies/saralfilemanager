@@ -1,5 +1,6 @@
 package com.saraltechies.saralfilemanager.ui.viewer
 
+import android.app.Activity
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.compose.foundation.Image
@@ -58,10 +59,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 import com.saraltechies.saralfilemanager.R
 import com.saraltechies.saralfilemanager.data.SettingsRepository
 import com.saraltechies.saralfilemanager.files.FileCategory
@@ -71,6 +74,8 @@ import com.saraltechies.saralfilemanager.files.MediaFile
 import com.saraltechies.saralfilemanager.ui.components.FileActions
 import com.saraltechies.saralfilemanager.ui.components.OperationBar
 import com.saraltechies.saralfilemanager.util.Thumbnails
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** What to show in the viewer, handed over in memory because a list of thousands of paths won't fit in a navigation route. */
 object ViewerQueue {
@@ -108,11 +113,20 @@ fun ViewerScreen(
 
     // A file deleted from here, or anywhere else, leaves the row; the next one takes its place.
     LaunchedEffect(changes) {
-        val still = items.filter { it.item.file.exists() }
+        val still = withContext(Dispatchers.IO) { items.filter { it.item.file.exists() } }
         if (still.size != items.size) items = still
         if (still.isEmpty()) onBack()
     }
     LaunchedEffect(pager.currentPage) { zoomed = false }
+
+    // The screen is black whatever the theme, so the status bar icons need to be light.
+    val view = LocalView.current
+    DisposableEffect(Unit) {
+        val controller = WindowCompat.getInsetsController((view.context as Activity).window, view)
+        val before = controller.isAppearanceLightStatusBars
+        controller.isAppearanceLightStatusBars = false
+        onDispose { controller.isAppearanceLightStatusBars = before }
+    }
 
     val actions = remember { FileActions(context, scope, files, operations, settings, snackbar) }
     actions.Dialogs(currentFolder = null, onSelectionDone = {})

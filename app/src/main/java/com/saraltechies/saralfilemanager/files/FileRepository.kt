@@ -117,8 +117,8 @@ class FileRepository(private val context: Context) {
         }
 
     /**
-     * Every photo or video on the phone, read from the media index in one go without touching each file, so even tens
-     * of thousands load quickly and "select all" really means all.
+     * Every photo or video on the phone, read from the media index in one go, so even tens of thousands load quickly
+     * and "select all" really means all. The index can lag behind, so each file is checked to still be there.
      */
     suspend fun media(category: FileCategory, showHidden: Boolean): List<MediaFile> = withContext(Dispatchers.IO) {
         val extensions = category.extensions.toList()
@@ -134,7 +134,7 @@ class FileRepository(private val context: Context) {
                     ensureActive()
                     val path = c.getString(1) ?: continue
                     if (!showHidden && path.contains("/.")) continue
-                    if (path.contains("/" + Bin.FOLDER + "/")) continue
+                    if (path.contains("/" + Bin.FOLDER + "/") || !File(path).exists()) continue
                     val name = path.substringAfterLast('/')
                     out += MediaFile(FileItem(path, name, false, c.getLong(2), c.getLong(3) * 1000), c.getLong(0), if (c.isNull(4)) 0 else c.getLong(4))
                 }
@@ -259,6 +259,7 @@ class FileRepository(private val context: Context) {
             context.contentResolver.query(uri, columns, selection, args, order)?.use { cursor ->
                 while (cursor.moveToNext() && items.size < limit) {
                     val path = cursor.getString(0) ?: continue
+                    if (path.contains("/" + Bin.FOLDER + "/")) continue
                     val file = File(path)
                     if (file.isFile) items += FileItem.from(file)
                 }

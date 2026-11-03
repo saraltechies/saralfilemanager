@@ -4,7 +4,9 @@ import android.content.Context
 import android.media.MediaScannerConnection
 import kotlinx.coroutines.CoroutineScope
 import com.saraltechies.saralfilemanager.util.FileOperationService
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.cancellation.CancellationException
 
 enum class OperationKind { COPY, MOVE, DELETE, ZIP, EXTRACT, TRASH, RESTORE }
@@ -138,9 +141,11 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
                     failed++
                 }
             }
-            scanMedia(filePaths(restored))
-            if (failed > 0) throw IOException("$failed item(s) could not be restored")
-            emptyList()
+            if (failed > 0) {
+                scanMedia(filePaths(restored))
+                throw IOException("$failed item(s) could not be restored")
+            }
+            restored
         }
     }
 
@@ -232,9 +237,11 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
                 running = null
                 _progress.value = null
             }
-            scanMedia(before + filePaths(outputs))
+            // Reload now for what's read from disk, and again once the media index, which galleries read, has caught up.
+            val changed = before + filePaths(outputs)
             _changes.update { it + 1 }
             _results.emit(result)
+            if (scanAndWait(changed)) _changes.update { it + 1 }
         }
     }
 
@@ -253,9 +260,23 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
         }
     }
 
-    /** Files at and below [roots], capped so a huge folder doesn't stall the media scanner. */
+    /** Files at and below [roots], up to a limit far beyond what a phone holds, as "select all" can be everything. */
     private fun filePaths(roots: List<File>): List<String> =
         roots.asSequence().flatMap { it.walkTopDown() }.filter { it.isFile }.map { it.absolutePath }.take(MAX_SCAN).toList()
+
+    /** True if there was anything to scan. Gives up waiting after a while, as the index may be busy. */
+    private suspend fun scanAndWait(paths: List<String>): Boolean {
+        if (paths.isEmpty()) return false
+        val left = AtomicInteger(paths.size)
+        val done = CompletableDeferred<Unit>()
+        runCatching {
+            MediaScannerConnection.scanFile(context, paths.toTypedArray(), null) { _, _ ->
+                if (left.decrementAndGet() == 0) done.complete(Unit)
+            }
+        }.onFailure { return false }
+        withTimeoutOrNull(SCAN_WAIT_MS) { done.await() }
+        return true
+    }
 
     private fun scanMedia(paths: List<String>) {
         if (paths.isEmpty()) return
@@ -265,6 +286,7 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
     private companion object {
         const val PROGRESS_INTERVAL_MS = 150L
         const val SERVICE_DELAY_MS = 800L
-        const val MAX_SCAN = 2000
+        const val MAX_SCAN = 100_000
+        const val SCAN_WAIT_MS = 5L * 60 * 1000
     }
 }

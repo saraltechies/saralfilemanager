@@ -337,4 +337,5 @@
         <item quantity="other">%1$d items restored</item>
     </plurals>
     <string name="notification_channel">File work</string>
+    <string name="share_too_many">Too many to share at once. Pick up to %1$d.</string>
 </resources>

@@ -71,6 +71,10 @@ class FileActions(
     }
 
     fun share(items: List<FileItem>) {
+        if (items.size > FileIntents.MAX_SHARE) {
+            scope.launch { snackbar.showSnackbar(context.getString(R.string.share_too_many, FileIntents.MAX_SHARE)) }
+            return
+        }
         if (!FileIntents.share(context, items.map { it.file })) say(R.string.couldnt_share)
     }
 
