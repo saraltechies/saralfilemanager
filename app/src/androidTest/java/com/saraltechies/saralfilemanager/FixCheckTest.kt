@@ -69,6 +69,9 @@ class FixCheckTest {
                 waitFor(hasText(a.name), 30_000)
                 settle()
                 shot("fix-dup-1-list")
+                // The extra copy starts ticked, so the button already offers Select none.
+                assertTrue(compose.onAllNodes(hasText(s(R.string.clean_select_none))).fetchSemanticsNodes().isNotEmpty())
+                click(s(R.string.clean_select_none))
                 click(s(R.string.select_all))
                 shot("fix-dup-2-select-all")
                 // Tapping these in turn must reach the point where only the last copy is left to tick, and be refused.
@@ -246,7 +249,8 @@ class FixCheckTest {
                 val top = shell("dumpsys activity activities").lines().filter { "mResumedActivity" in it || "topResumedActivity" in it }.joinToString(" | ")
                 val logs = shell("logcat -d -s PackageInstaller:* InstallStart:* PackageInstallerActivity:*").lines().takeLast(12).joinToString("\n")
                 log("apk tap: on top: $top\n$logs")
-                instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+                // Android 8 shows a crash message from its installer, which only Android can dismiss.
+                shell("am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS")
             }
         } finally {
             dir.deleteRecursively()
