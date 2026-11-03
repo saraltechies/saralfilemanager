@@ -74,7 +74,19 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - Upload key SHA-256 (for reference):
   `C1:38:DE:8B:78:5A:2E:32:28:06:6F:B0:9F:96:D3:A7:C6:80:7D:1C:2B:E1:DF:2C:72:63:9E:D0:F9:90:27:05`
 - Deobfuscation file: upload `mapping.txt` from the same build.
-- Release name: `1.2.0 (5)` (earlier: `1.1.1 (4)`, `1.1.0 (3)` was replaced while still in review, `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
+- Release name: `1.2.1 (6)` (earlier: `1.2.0 (5)`, `1.1.1 (4)`, `1.1.0 (3)` was replaced while still in review, `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
+- Release notes for 1.2.1 (en-IN):
+  ```
+  <en-IN>
+  Safer and steadier.
+  • Duplicates always keep one copy of each file
+  • Moving to an SD card checks the copy before removing the original
+  • Very large photos open on Android 8
+  • Videos keep playing when you turn the phone
+  • Clearer selection bar and search on small screens
+  • Long copies keep going if you leave the app straight away
+  </en-IN>
+  ```
 - Release notes for 1.2.0 (en-IN):
   ```
   <en-IN>

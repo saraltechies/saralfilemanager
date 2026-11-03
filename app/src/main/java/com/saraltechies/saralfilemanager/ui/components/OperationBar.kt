@@ -142,6 +142,7 @@ fun OperationMessages(
                             OperationResult.Reason.INTO_ITSELF -> R.string.error_into_itself
                             OperationResult.Reason.NO_SPACE -> R.string.error_no_space
                             OperationResult.Reason.NOT_ALLOWED -> R.string.error_not_allowed
+                            OperationResult.Reason.BUSY -> R.string.error_busy
                             OperationResult.Reason.OTHER -> R.string.error_operation_failed
                         },
                     ),

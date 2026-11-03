@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,6 +73,7 @@ import com.saraltechies.saralfilemanager.ui.components.ConfirmDeleteDialog
 import com.saraltechies.saralfilemanager.ui.components.FileRow
 import com.saraltechies.saralfilemanager.ui.components.OperationBar
 import com.saraltechies.saralfilemanager.util.FileIntents
+import kotlinx.coroutines.launch
 
 /** Ways to free up space, each with how much it would free: copies, large files, old screenshots, downloads, unused apps. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -262,11 +264,14 @@ fun CleanListScreen(
     LaunchedEffect(suggestion) {
         val s = suggestion ?: return@LaunchedEffect
         val present = s.files.map { it.path }.toSet()
-        selected = selected?.intersect(present) ?: s.preselected
+        // A copy may have gone since this was ticked, which can leave only ticked copies in a group.
+        selected = s.keepingOneCopy(selected?.intersect(present) ?: s.preselected)
     }
     val ticked = selected.orEmpty()
     val tickedBytes = suggestion?.files?.filter { it.path in ticked }?.sumOf { it.size } ?: 0
     var confirm by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val keepOneMessage = stringResource(R.string.clean_keep_one)
 
     if (confirm) {
         val names = suggestion?.files?.filter { it.path in ticked }?.map { it.name }.orEmpty()
@@ -287,10 +292,10 @@ fun CleanListScreen(
                 title = { Text(stringResource(kind.title())) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
                 actions = {
-                    val all = suggestion?.files?.map { it.path }?.toSet().orEmpty()
+                    val all = suggestion?.selectable.orEmpty()
                     if (all.isNotEmpty()) {
-                        TextButton(onClick = { selected = if (ticked.size == all.size) emptySet() else all }) {
-                            Text(stringResource(if (ticked.size == all.size) R.string.clean_select_none else R.string.select_all))
+                        TextButton(onClick = { selected = if (ticked == all) emptySet() else all }) {
+                            Text(stringResource(if (ticked == all) R.string.clean_select_none else R.string.select_all))
                         }
                     }
                 },
@@ -341,7 +346,12 @@ fun CleanListScreen(
                     items(group, key = { it.path }) { item ->
                         FileRow(
                             item, selected = item.path in ticked, showFolder = true,
-                            onClick = { selected = if (item.path in ticked) ticked - item.path else ticked + item.path },
+                            onClick = {
+                                val wanted = if (item.path in ticked) ticked - item.path else ticked + item.path
+                                val allowed = s.keepingOneCopy(wanted)
+                                selected = if (allowed == wanted) wanted else ticked
+                                if (allowed != wanted) scope.launch { snackbar.showSnackbar(keepOneMessage) }
+                            },
                             onLongClick = { FileIntents.open(context, item.file) },
                         )
                     }

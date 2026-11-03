@@ -40,6 +40,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -228,13 +230,31 @@ private fun PhotoPage(media: MediaFile, onZoomed: (Boolean) -> Unit, onToggleChr
     }
 }
 
+/** Where a playing video has got to, kept when the phone turns and the screen is rebuilt. */
+private class VideoPlace(var position: Int = 0) {
+    var view: VideoView? = null
+
+    companion object {
+        val Saver = Saver<VideoPlace, Int>(
+            save = { place -> place.view?.currentPosition?.takeIf { it > 0 } ?: place.position },
+            restore = { VideoPlace(it) },
+        )
+    }
+}
+
 @Composable
 private fun VideoPage(media: MediaFile, isCurrent: Boolean, onOpenWith: () -> Unit, onToggleChrome: () -> Unit) {
     val context = LocalContext.current
-    var playing by remember { mutableStateOf(false) }
+    var playing by rememberSaveable { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
+    val place = rememberSaveable(saver = VideoPlace.Saver) { VideoPlace() }
     // Swiping away stops the video.
-    LaunchedEffect(isCurrent) { if (!isCurrent) playing = false }
+    LaunchedEffect(isCurrent) {
+        if (!isCurrent) {
+            playing = false
+            place.position = 0
+        }
+    }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when {
             failed -> CantShow(R.string.viewer_cant_play_video, onOpenWith)
@@ -249,10 +269,17 @@ private fun VideoPage(media: MediaFile, isCurrent: Boolean, onOpenWith: () -> Un
                             true
                         }
                         setVideoPath(media.path)
+                        if (place.position > 0) seekTo(place.position)
                         start()
                     }
                 }
-                DisposableEffect(view) { onDispose { view.stopPlayback() } }
+                DisposableEffect(view) {
+                    place.view = view
+                    onDispose {
+                        place.view = null
+                        view.stopPlayback()
+                    }
+                }
                 AndroidView({ view }, Modifier.fillMaxSize())
             }
             else -> {
