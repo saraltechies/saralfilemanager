@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import com.saraltechies.saralfilemanager.files.MediaFile
 import com.saraltechies.saralfilemanager.ui.bin.BinScreen
 import com.saraltechies.saralfilemanager.ui.gallery.GalleryScreen
@@ -104,6 +105,7 @@ fun AppNav(
         }
     }
 
+    // Back arrows ignore a second quick tap: going back twice from the first screen would leave nothing on screen.
     NavHost(nav, startDestination = "home") {
         composable("home") {
             // A Play review, if one is due, is asked here: back on the home screen, not in the middle of a task.
@@ -139,26 +141,26 @@ fun AppNav(
                 operations = operations,
                 settings = settings,
                 snackbar = snackbar,
-                onBack = { nav.popBackStack() },
+                onBack = dropUnlessResumed { nav.popBackStack() },
                 onOpenViewer = openViewer,
             )
         }
         composable("viewer") {
-            ViewerScreen(files, operations, settings, snackbar, onBack = { nav.popBackStack() })
+            ViewerScreen(files, operations, settings, snackbar, onBack = dropUnlessResumed { nav.popBackStack() })
         }
         composable("bin") {
-            BinScreen(files, operations, settings, snackbar, onBack = { nav.popBackStack() })
+            BinScreen(files, operations, settings, snackbar, onBack = dropUnlessResumed { nav.popBackStack() })
         }
         composable(
             "apps?unused={unused}",
             arguments = listOf(navArgument("unused") { type = NavType.BoolType; defaultValue = false }),
         ) { entry ->
-            AppsScreen(apps, startUnused = entry.arguments?.getBoolean("unused") == true, snackbar = snackbar, onBack = { nav.popBackStack() })
+            AppsScreen(apps, startUnused = entry.arguments?.getBoolean("unused") == true, snackbar = snackbar, onBack = dropUnlessResumed { nav.popBackStack() })
         }
         composable("clean") {
             CleanScreen(
                 files = files, operations = operations, apps = apps, snackbar = snackbar,
-                onBack = { nav.popBackStack() },
+                onBack = dropUnlessResumed { nav.popBackStack() },
                 onOpen = { nav.navigate("clean/" + it.name) },
                 onOpenApps = { unused -> nav.navigate("apps?unused=" + unused) },
                 onOpenBin = { nav.navigate("bin") },
@@ -166,13 +168,13 @@ fun AppNav(
         }
         composable("clean/{kind}") { entry ->
             val kind = CleanKind.entries.firstOrNull { it.name == entry.arguments?.getString("kind") } ?: CleanKind.LARGE
-            CleanListScreen(kind, files, operations, snackbar, onBack = { nav.popBackStack() })
+            CleanListScreen(kind, files, operations, snackbar, onBack = dropUnlessResumed { nav.popBackStack() })
         }
         composable("category/{name}") { entry ->
             val name = entry.arguments?.getString("name")
             val chosen = FileCategory.entries.firstOrNull { it.name == name }
             if (chosen == FileCategory.IMAGE || chosen == FileCategory.VIDEO) {
-                GalleryScreen(chosen, files, operations, settings, snackbar, onBack = { nav.popBackStack() }, onOpenFolder = openFolder, onOpenViewer = openViewer)
+                GalleryScreen(chosen, files, operations, settings, snackbar, onBack = dropUnlessResumed { nav.popBackStack() }, onOpenFolder = openFolder, onOpenViewer = openViewer)
                 return@composable
             }
             CategoryScreen(
@@ -181,7 +183,7 @@ fun AppNav(
                 operations = operations,
                 settings = settings,
                 snackbar = snackbar,
-                onBack = { nav.popBackStack() },
+                onBack = dropUnlessResumed { nav.popBackStack() },
                 onOpenFolder = openFolder,
             )
         }
