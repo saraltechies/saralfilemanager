@@ -46,6 +46,8 @@ CHECK=com.saraltechies.saralfilemanager.AppCheckTest
 instrument gallery-and-bin com.saraltechies.saralfilemanager.GalleryAndBinTest
 instrument every-screen "$CHECK#everyMainScreen"
 instrument video "$CHECK#videoReallyPlays"
+instrument video-odd-name "$CHECK#videoWithOddNamePlays"
+instrument drag "$CHECK#dragSelectsInSmallSteps"
 instrument awkward-files "$CHECK#awkwardFiles"
 instrument rebuilt "$CHECK#selectionAndViewerSurviveBeingRebuilt"
 instrument big-library "$CHECK#bigLibraryAndBigFolder"
@@ -60,11 +62,12 @@ adb pull "/sdcard/Android/data/$DEBUG/files/screenshots/." "$OUT/screens/" || tr
 # The real thing: the shrunk release build, as people get it, signed with the debug key for this emulator only.
 ./gradlew assembleRelease --stacktrace
 TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-"$TOOLS/apksigner" sign --ks "$HOME/.android/debug.keystore" --ks-pass pass:android --key-pass pass:android \
+keytool -genkeypair -keystore check.jks -storepass android -keypass android -alias check -keyalg RSA -keysize 2048 -validity 2 -dname "CN=App check"
+"$TOOLS/apksigner" sign --ks check.jks --ks-pass pass:android --key-pass pass:android \
   --out release-check.apk app/build/outputs/apk/release/app-release-unsigned.apk
 ls -la release-check.apk > "$OUT/apk-size.txt" 2>&1
 adb uninstall "$DEBUG" || true
-adb install -r release-check.apk
+adb install -r release-check.apk || echo "FAIL release-install" >> "$OUT/summary.txt"
 allow "$RELEASE"
 
 # Cold start, three times.
@@ -81,7 +84,9 @@ for seed in 11 42; do
   adb shell am start -n "$RELEASE/.MainActivity" || true
   sleep 2
   adb shell monkey -p "$RELEASE" -s "$seed" --throttle 100 --pct-syskeys 0 --pct-anyevent 0 -v 3000 2>&1 | tail -n 40 > "$OUT/monkey-$seed.txt"
-  if grep -qE "CRASH|NOT RESPONDING" "$OUT/monkey-$seed.txt"; then echo "FAIL monkey-$seed" >> "$OUT/summary.txt"; else echo "PASS monkey-$seed" >> "$OUT/summary.txt"; fi
+  if grep -qE "CRASH|NOT RESPONDING|aborted" "$OUT/monkey-$seed.txt"; then echo "FAIL monkey-$seed" >> "$OUT/summary.txt"
+  elif grep -q "Monkey finished" "$OUT/monkey-$seed.txt"; then echo "PASS monkey-$seed" >> "$OUT/summary.txt"
+  else echo "UNKNOWN monkey-$seed" >> "$OUT/summary.txt"; fi
 done
 adb logcat -d -b crash > "$OUT/crash-release.txt" 2>&1 || true
 adb logcat -d > "$OUT/logcat-release.txt" 2>&1 || true

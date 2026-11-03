@@ -17,6 +17,9 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.printToString
+import androidx.compose.ui.test.get
+import androidx.compose.ui.test.swipe
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeUp
 import androidx.test.core.app.ActivityScenario
@@ -70,20 +73,19 @@ class AppCheckTest {
                 R.string.category_archives to "archives",
                 R.string.category_apps to "apk",
             ).forEach { (label, name) ->
-                scrollHomeTo(s(label))
-                click(s(label))
+                clickTile(s(label))
                 settle(2_500)
                 shot("tour-10-$name")
                 back()
             }
 
+            scrollHomeTo(s(R.string.home_clean_action))
             click(s(R.string.home_clean_action))
             settle(6_000)
             shot("tour-20-clean")
             back()
 
-            scrollHomeTo(s(R.string.tile_apps))
-            click(s(R.string.tile_apps))
+            clickTile(s(R.string.tile_apps))
             settle(3_000)
             shot("tour-21-apps")
             back()
@@ -94,8 +96,7 @@ class AppCheckTest {
             shot("tour-22-bin")
             back()
 
-            scrollHomeTo(s(R.string.folder_downloads))
-            click(s(R.string.folder_downloads))
+            clickTile(s(R.string.folder_camera))
             settle(2_000)
             shot("tour-30-folder")
             click(s(R.string.more_options))
@@ -114,36 +115,57 @@ class AppCheckTest {
         val video = File(root, "DCIM/Camera/check-video.mp4")
         assertTrue("The workflow should have pushed the test video", video.exists())
         scan(listOf(video.path))
+        playAndCheck(video, "video")
+    }
+
+    /** A video named with characters that mean something in a web address. */
+    @Test
+    fun videoWithOddNamePlays() {
+        val source = File(root, "DCIM/Camera/check-video.mp4")
+        val video = File(root, "DCIM/Camera/clip #1 100% done.mp4")
+        source.copyTo(video, overwrite = true)
+        scan(listOf(video.path))
+        try {
+            playAndCheck(video, "oddname", rotate = false)
+        } finally {
+            video.delete()
+            scan(listOf(video.path))
+        }
+    }
+
+    private fun playAndCheck(video: File, tag: String, rotate: Boolean = true) {
         ActivityScenario.launch(MainActivity::class.java).use {
-            scrollHomeTo(s(R.string.category_videos))
-            click(s(R.string.category_videos))
+            clickTile(s(R.string.category_videos))
             waitFor(hasContentDescription(video.name), 30_000)
             settle()
-            shot("video-1-list")
+            shot("$tag-1-list")
             compose.onAllNodes(hasContentDescription(video.name)).onFirst().performClick()
             settle(1_500)
-            shot("video-2-viewer")
+            shot("$tag-2-viewer")
             val play = hasContentDescription(s(R.string.viewer_play)) and hasClickAction()
             waitFor(play)
             compose.onAllNodes(play).onFirst().performClick()
+            // The test framework only updates the screen while it's waiting, so a plain sleep wouldn't start the video.
+            settle(3_000)
+            assertTrue("The play button should go away", compose.onAllNodes(play).fetchSemanticsNodes().isEmpty())
+            val a = takeShot("$tag-3-playing-a")
             Thread.sleep(3_000)
-            val a = takeShot("video-3-playing-a")
-            Thread.sleep(3_000)
-            val b = takeShot("video-4-playing-b")
+            val b = takeShot("$tag-4-playing-b")
             assertTrue(
                 "The video should not show the can't-play message",
                 compose.onAllNodes(hasText(s(R.string.viewer_cant_play_video))).fetchSemanticsNodes().isEmpty(),
             )
             assertTrue("The picture should change while the video plays", differs(a, b))
-            log("video: picture changed while playing")
+            log("$tag: picture changed while playing")
+            if (!rotate) return@use
 
             // Turning the phone during playback.
             it.onActivity { a2 -> a2.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
             settle(3_000)
-            shot("video-5-landscape")
+            shot("$tag-5-landscape")
             it.onActivity { a2 -> a2.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
             settle(2_000)
-            shot("video-6-back-to-portrait")
+            shot("$tag-6-back-to-portrait")
         }
     }
 
@@ -167,18 +189,17 @@ class AppCheckTest {
         scan(made.map { it.path })
 
         ActivityScenario.launch(MainActivity::class.java).use {
-            // In the gallery, then opening every one in the viewer.
-            click(s(R.string.category_images))
-            settle(3_000)
-            shot("awkward-1-gallery")
-            openEach(made.filter { it.name.endsWith(".jpg") }, "photo")
-            back()
-
-            scrollHomeTo(s(R.string.category_videos))
-            click(s(R.string.category_videos))
+            // Videos first, then photos, each opened in the viewer.
+            clickTile(s(R.string.category_videos))
             settle(3_000)
             shot("awkward-2-videos")
             openEach(made.filter { it.name.endsWith(".mp4") }, "video")
+            back()
+
+            clickTile(s(R.string.category_images))
+            settle(3_000)
+            shot("awkward-1-gallery")
+            openEach(made.filter { it.name.endsWith(".jpg") }, "photo")
             back()
         }
         dir.deleteRecursively()
@@ -207,13 +228,46 @@ class AppCheckTest {
         }
     }
 
+    /** Press, hold and drag across photos in small steps, as a finger does. */
+    @Test
+    fun dragSelectsInSmallSteps() {
+        val photos = (0 until 8).map { photo("Pictures/CheckDrag/drag-$it.jpg", Color.rgb(30 * it, 90, 200 - 20 * it)) }
+        scan(photos.map { it.path })
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use {
+                clickTile(s(R.string.category_images))
+                waitFor(hasContentDescription("drag-0.jpg"))
+                settle()
+                val from = compose.onAllNodes(hasContentDescription("drag-0.jpg")).onFirst().fetchSemanticsNode().boundsInRoot.center
+                val to = compose.onAllNodes(hasContentDescription("drag-3.jpg")).onFirst().fetchSemanticsNode().boundsInRoot.center
+                compose.onAllNodes(isRoot()).onFirst().performTouchInput {
+                    down(from)
+                    advanceEventTime(viewConfiguration.longPressTimeoutMillis + 150)
+                    repeat(20) { step ->
+                        moveTo(from + (to - from) * ((step + 1) / 20f))
+                        advanceEventTime(30)
+                    }
+                    up()
+                }
+                settle()
+                shot("drag-1-after")
+                val count = (1..8).firstOrNull { n -> compose.onAllNodes(hasText(s(R.string.selected_count).format(n))).fetchSemanticsNodes().isNotEmpty() } ?: 0
+                log("drag: $count selected")
+                assertTrue("Dragging across photos should select several, got $count", count >= 2)
+            }
+        } finally {
+            File(root, "Pictures/CheckDrag").deleteRecursively()
+            scan(photos.map { it.path })
+        }
+    }
+
     /** Turning the phone and the activity being rebuilt must keep the selection and where you were. */
     @Test
     fun selectionAndViewerSurviveBeingRebuilt() {
         val photos = (0 until 8).map { photo("Pictures/CheckRotate/rotate-$it.jpg", Color.rgb(30 * it, 200 - 20 * it, 80)) }
         scan(photos.map { it.path })
         ActivityScenario.launch(MainActivity::class.java).use {
-            click(s(R.string.category_images))
+            clickTile(s(R.string.category_images))
             waitFor(hasContentDescription("rotate-0.jpg"))
             compose.onAllNodes(hasContentDescription("rotate-0.jpg")).onFirst().performTouchInput { longClick() }
             waitFor(hasText(s(R.string.selected_count).format(1)))
@@ -271,8 +325,8 @@ class AppCheckTest {
             settle(2_000)
             val runtime = Runtime.getRuntime()
             timed("big: gallery first photo") {
-                click(s(R.string.category_images))
-                waitFor(hasContentDescription("big-00000.jpg"), 60_000)
+                clickTile(s(R.string.category_images))
+                waitFor(hasContentDescription("big-", substring = true), 60_000)
             }
             settle(2_000)
             shot("big-1-gallery")
@@ -287,6 +341,7 @@ class AppCheckTest {
             compose.onAllNodes(hasContentDescription("big-", substring = true)).onFirst().performTouchInput { longClick() }
             settle(1_000)
             timed("big: select all") {
+                click(s(R.string.more_options))
                 click(s(R.string.select_all))
                 settle(500)
             }
@@ -301,8 +356,9 @@ class AppCheckTest {
             click("Pictures")
             settle(1_500)
             timed("big: open a folder of 4,000 files") {
+                scrollToFolder("CheckBig")
                 click("CheckBig")
-                waitFor(hasText("big-00000.jpg"), 60_000)
+                waitFor(hasText("big-", substring = true), 60_000)
             }
             settle(1_000)
             shot("big-4-folder")
@@ -314,6 +370,14 @@ class AppCheckTest {
             shot("big-5-folder-scrolled")
         }
         dir.deleteRecursively()
+    }
+
+    private fun scrollToFolder(name: String) {
+        repeat(5) {
+            if (compose.onAllNodes(hasText(name)).fetchSemanticsNodes().isNotEmpty()) return
+            compose.onAllNodes(isRoot()).onFirst().performTouchInput { swipeUp() }
+            settle(400)
+        }
     }
 
     private fun click(text: String) {
@@ -331,12 +395,31 @@ class AppCheckTest {
         settle()
     }
 
+    /** Scrolls the home screen until [text] is properly on screen, since a tap on something off screen does nothing. */
     private fun scrollHomeTo(text: String) {
-        repeat(6) {
-            if (compose.onAllNodes(hasText(text) and hasClickAction()).fetchSemanticsNodes().isNotEmpty()) return
-            compose.onAllNodes(isRoot()).onFirst().performTouchInput { swipeUp() }
-            settle(500)
+        val root = compose.onAllNodes(isRoot()).onFirst()
+        repeat(4) {
+            root.performTouchInput { swipeDown() }
+            settle(300)
         }
+        val height = root.fetchSemanticsNode().boundsInRoot.height
+        val matcher = hasText(text, substring = true) and hasClickAction()
+        repeat(12) {
+            val onScreen = compose.onAllNodes(matcher).fetchSemanticsNodes().any { it.boundsInRoot.top > height * 0.12f && it.boundsInRoot.bottom < height * 0.88f }
+            if (onScreen) return
+            root.performTouchInput { swipe(androidx.compose.ui.geometry.Offset(center.x, height * 0.7f), androidx.compose.ui.geometry.Offset(center.x, height * 0.45f), 300) }
+            settle(400)
+        }
+    }
+
+    /** Clicks a home tile: the name is only part of its text, which also has the size. */
+    private fun clickTile(text: String) {
+        scrollHomeTo(text)
+        val height = compose.onAllNodes(isRoot()).onFirst().fetchSemanticsNode().boundsInRoot.height
+        val matcher = hasText(text, substring = true) and hasClickAction()
+        val index = compose.onAllNodes(matcher).fetchSemanticsNodes().indexOfFirst { it.boundsInRoot.top > height * 0.12f && it.boundsInRoot.bottom < height * 0.88f }
+        compose.onAllNodes(matcher)[index.coerceAtLeast(0)].performClick()
+        settle()
     }
 
     private fun waitFor(matcher: SemanticsMatcher, timeoutMs: Long = 15_000) {
