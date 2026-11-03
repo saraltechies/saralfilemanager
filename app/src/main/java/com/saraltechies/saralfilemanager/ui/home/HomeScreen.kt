@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
@@ -110,6 +111,7 @@ fun HomeScreen(
     apps: AppsRepository,
     onOpenApps: () -> Unit,
     onOpenClean: () -> Unit,
+    onOpenBin: () -> Unit = {},
     updateReady: Boolean = false,
     onRestartForUpdate: () -> Unit = {},
 ) {
@@ -134,7 +136,7 @@ fun HomeScreen(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onSearch) { Icon(Icons.Filled.Search, stringResource(R.string.search)) }
-                    AppMenu()
+                    AppMenu(onOpenBin)
                 },
             )
         },
@@ -423,7 +425,7 @@ private fun MoreAppRow(icon: ImageVector, title: String, subtitle: String, onCli
 
 /** Rate, other apps, source code, the privacy policy (Play requires it to be reachable in the app) and the version. */
 @Composable
-private fun AppMenu() {
+private fun AppMenu(onOpenBin: () -> Unit) {
     val context = LocalContext.current
     var open by remember { mutableStateOf(false) }
     var showMoreApps by remember { mutableStateOf(false) }
@@ -431,6 +433,14 @@ private fun AppMenu() {
     Box {
         IconButton(onClick = { open = true }) { Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options)) }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.bin_title)) },
+                leadingIcon = { Icon(Icons.Filled.Delete, null) },
+                onClick = {
+                    open = false
+                    onOpenBin()
+                },
+            )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.rate_app)) },
                 onClick = {

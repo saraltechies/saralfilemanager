@@ -48,6 +48,7 @@ import com.saraltechies.saralfilemanager.files.FileRepository
 import com.saraltechies.saralfilemanager.ui.components.FileActions
 import com.saraltechies.saralfilemanager.ui.components.FileList
 import com.saraltechies.saralfilemanager.ui.components.OperationBar
+import com.saraltechies.saralfilemanager.ui.components.rememberSelection
 import com.saraltechies.saralfilemanager.ui.components.SelectionTopBar
 import com.saraltechies.saralfilemanager.ui.components.SortDialog
 import kotlinx.coroutines.launch
@@ -69,7 +70,9 @@ fun CategoryScreen(
     val prefs by settings.viewPrefs.collectAsStateWithLifecycle(initialValue = ViewPrefs())
     val bookmarks by settings.bookmarks.collectAsStateWithLifecycle(initialValue = emptySet())
     val changes by operations.changes.collectAsStateWithLifecycle()
-    var selected by rememberSaveable { mutableStateOf(emptySet<String>()) }
+    var selected by rememberSelection()
+    val gridKey = category?.name ?: "RECENT"
+    val grid by remember(gridKey) { settings.categoryGrid(gridKey) }.collectAsStateWithLifecycle(initialValue = false)
 
     val items by produceState<List<FileItem>?>(null, category, prefs, changes) {
         value = if (category == null) files.recent() else files.category(category, prefs.showHidden, prefs.comparator)
@@ -119,10 +122,10 @@ fun CategoryScreen(
                         IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) }
                     },
                     actions = {
-                        IconButton(onClick = { scope.launch { settings.setGrid(!prefs.grid) } }) {
+                        IconButton(onClick = { scope.launch { settings.setCategoryGrid(gridKey, !grid) } }) {
                             Icon(
-                                if (prefs.grid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.GridView,
-                                stringResource(if (prefs.grid) R.string.list_view else R.string.grid_view),
+                                if (grid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.GridView,
+                                stringResource(if (grid) R.string.list_view else R.string.grid_view),
                             )
                         }
                         // Recent files are always newest first.
@@ -163,7 +166,7 @@ fun CategoryScreen(
             }
             else -> FileList(
                 items = list,
-                grid = prefs.grid,
+                grid = grid,
                 selected = selected,
                 onClick = { item ->
                     if (selected.isNotEmpty()) {

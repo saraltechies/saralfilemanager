@@ -69,6 +69,9 @@ import com.saraltechies.saralfilemanager.ui.components.FileActions
 import com.saraltechies.saralfilemanager.ui.components.FileList
 import com.saraltechies.saralfilemanager.ui.components.OperationBar
 import com.saraltechies.saralfilemanager.ui.components.SelectionTopBar
+import com.saraltechies.saralfilemanager.files.MediaFile
+import com.saraltechies.saralfilemanager.ui.components.rememberSelection
+import com.saraltechies.saralfilemanager.util.Thumbnails
 import com.saraltechies.saralfilemanager.ui.components.SortDialog
 import com.saraltechies.saralfilemanager.ui.components.ZipDialog
 import kotlinx.coroutines.delay
@@ -89,6 +92,7 @@ fun BrowserScreen(
     settings: SettingsRepository,
     snackbar: SnackbarHostState,
     onBack: () -> Unit,
+    onOpenViewer: (List<MediaFile>, Int) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -102,7 +106,7 @@ fun BrowserScreen(
 
     var searching by rememberSaveable { mutableStateOf(startSearch) }
     var query by rememberSaveable { mutableStateOf("") }
-    var selected by rememberSaveable { mutableStateOf(emptySet<String>()) }
+    var selected by rememberSelection()
 
     val listing by produceState<Listing>(Listing.Loading, path, prefs, changes) {
         value = files.list(path, prefs.showHidden, prefs.comparator)
@@ -248,6 +252,10 @@ fun BrowserScreen(
                         path = item.path
                     }
                     item.extension == "zip" -> zipToOpen = item
+                    Thumbnails.supports(item.category) -> {
+                        val media = shown.filter { !it.isDirectory && Thumbnails.supports(it.category) }
+                        onOpenViewer(media.map { MediaFile(it) }, media.indexOfFirst { it.path == item.path })
+                    }
                     else -> actions.open(item.file)
                 }
             }

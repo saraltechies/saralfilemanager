@@ -270,4 +270,72 @@
     <string name="usage_access_title">See full app sizes</string>
     <string name="usage_access_text">Turn on usage access for Saral Files to see each app\'s data and cache, and which apps you haven\'t used. It stays on this phone.</string>
     <string name="usage_access_allow">Turn on</string>
+
+    <!-- Gallery -->
+    <string name="gallery_albums">Albums</string>
+    <string name="gallery_today">Today</string>
+    <string name="gallery_yesterday">Yesterday</string>
+    <string name="gallery_select_day">Select all from %1$s</string>
+    <string name="gallery_unselect_day">Unselect all from %1$s</string>
+    <string name="gallery_sort_newest">Newest first</string>
+    <string name="gallery_sort_oldest">Oldest first</string>
+    <string name="gallery_sort_largest">Largest first</string>
+    <string name="gallery_sort_smallest">Smallest first</string>
+    <string name="gallery_sort_name">By name</string>
+    <string name="select_invert">Invert selection</string>
+
+    <!-- Viewer -->
+    <string name="viewer_play">Play</string>
+    <string name="viewer_cant_show_photo">This photo can\'t be shown here.</string>
+    <string name="viewer_cant_play_video">This video can\'t be played here. Try another app.</string>
+
+    <!-- Bin -->
+    <string name="bin_title">Bin</string>
+    <string name="bin_use">Keep deleted files in the Bin</string>
+    <string name="bin_use_on">Deleted files stay here for %1$d days, then they\'re gone.</string>
+    <string name="bin_use_off">Off: files are deleted straight away. (%1$d days when on.)</string>
+    <string name="bin_empty">Empty</string>
+    <string name="bin_empty_text">Nothing in the Bin. Files you delete stay here for a while, so you can get them back.</string>
+    <string name="bin_restore">Restore</string>
+    <string name="bin_delete_forever">Delete forever</string>
+    <string name="bin_delete_message">This can\'t be undone.</string>
+    <string name="bin_clean_text">Deleted files still take up space until the Bin is emptied.</string>
+    <string name="bin_one_title">Move \"%1$s\" to the Bin?</string>
+    <string name="bin_move">Move to Bin</string>
+    <string name="bin_message">You can restore it from the Bin for %1$d days. Folders go with everything inside them.</string>
+    <string name="undo">Undo</string>
+    <plurals name="bin_many_title">
+        <item quantity="one">Move %1$d item to the Bin?</item>
+        <item quantity="other">Move %1$d items to the Bin?</item>
+    </plurals>
+    <plurals name="bin_delete_title">
+        <item quantity="one">Delete %1$d item forever?</item>
+        <item quantity="other">Delete %1$d items forever?</item>
+    </plurals>
+    <plurals name="bin_summary">
+        <item quantity="one">%1$d item · %2$s</item>
+        <item quantity="other">%1$d items · %2$s</item>
+    </plurals>
+    <plurals name="bin_days_left">
+        <item quantity="one">%1$d day left</item>
+        <item quantity="other">%1$d days left</item>
+    </plurals>
+    <plurals name="moving_to_bin">
+        <item quantity="one">Moving %1$d item to the Bin</item>
+        <item quantity="other">Moving %1$d items to the Bin</item>
+    </plurals>
+    <plurals name="restoring">
+        <item quantity="one">Restoring %1$d item</item>
+        <item quantity="other">Restoring %1$d items</item>
+    </plurals>
+    <plurals name="moved_to_bin">
+        <item quantity="one">%1$d item moved to the Bin</item>
+        <item quantity="other">%1$d items moved to the Bin</item>
+    </plurals>
+    <plurals name="restored">
+        <item quantity="one">%1$d item restored</item>
+        <item quantity="other">%1$d items restored</item>
+    </plurals>
+    <string name="notification_channel">File work</string>
+    <string name="share_too_many">Too many to share at once. Pick up to %1$d.</string>
 </resources>

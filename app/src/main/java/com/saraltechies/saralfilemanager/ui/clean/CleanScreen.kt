@@ -62,6 +62,8 @@ import com.saraltechies.saralfilemanager.apps.AppsRepository
 import com.saraltechies.saralfilemanager.clean.CleanKind
 import com.saraltechies.saralfilemanager.clean.CleanSuggestion
 import com.saraltechies.saralfilemanager.clean.Cleaner
+import androidx.compose.material.icons.filled.Delete
+import com.saraltechies.saralfilemanager.files.BinEntry
 import com.saraltechies.saralfilemanager.files.FileOperations
 import com.saraltechies.saralfilemanager.files.FileRepository
 import com.saraltechies.saralfilemanager.files.Sizes
@@ -82,9 +84,11 @@ fun CleanScreen(
     onBack: () -> Unit,
     onOpen: (CleanKind) -> Unit,
     onOpenApps: (unused: Boolean) -> Unit,
+    onOpenBin: () -> Unit = {},
 ) {
     val changes by operations.changes.collectAsStateWithLifecycle()
     val cleaner = remember(files) { Cleaner(files) }
+    val binEntries by produceState<List<BinEntry>?>(null, changes) { value = files.binEntries() }
     // Read straight away (it is quick), so the card is there before the list is laid out.
     val volume by produceState(remember { files.volumes().firstOrNull { it.isPrimary } }, changes) { value = files.volumes().firstOrNull { it.isPrimary } }
     var usageAccess by remember { mutableStateOf(apps.hasUsageAccess()) }
@@ -112,6 +116,20 @@ fun CleanScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             volume?.let { v -> item { FreeSpaceCard(v) } }
+            // Files in the Bin still take up space until it's emptied.
+            binEntries?.takeIf { it.isNotEmpty() }?.let { list ->
+                item(key = "bin") {
+                    SuggestionCard(
+                        icon = Icons.Filled.Delete,
+                        title = stringResource(R.string.bin_title),
+                        text = stringResource(R.string.bin_clean_text),
+                        loading = false,
+                        count = list.size,
+                        bytes = list.sumOf { it.bytes },
+                        onClick = onOpenBin,
+                    )
+                }
+            }
             CleanKind.entries.forEach { kind ->
                 item(key = kind.name) {
                     val suggestion by produceState<CleanSuggestion?>(null, kind, changes) { value = cleaner.suggestion(kind) }

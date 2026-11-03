@@ -87,6 +87,8 @@ private fun OperationKind.progressLabel(): Int = when (this) {
     OperationKind.DELETE -> R.plurals.deleting
     OperationKind.ZIP -> R.plurals.compressing
     OperationKind.EXTRACT -> R.plurals.extracting
+    OperationKind.TRASH -> R.plurals.moving_to_bin
+    OperationKind.RESTORE -> R.plurals.restoring
 }
 
 /**
@@ -105,7 +107,7 @@ fun OperationMessages(
         operations.results.collect { result ->
             when (result) {
                 is OperationResult.Done -> {
-                    if (result.kind != OperationKind.DELETE) settings.recordGoodMoment()
+                    if (result.kind != OperationKind.DELETE && result.kind != OperationKind.TRASH && result.kind != OperationKind.RESTORE) settings.recordGoodMoment()
                     val output = result.output
                     // Zips and extracted folders are new things worth opening; copies and moves are where the person already is.
                     val openable = output != null && (result.kind == OperationKind.ZIP || result.kind == OperationKind.EXTRACT)
@@ -115,13 +117,21 @@ fun OperationMessages(
                         OperationKind.DELETE -> resources.getQuantityString(R.plurals.deleted, result.count, result.count)
                         OperationKind.ZIP -> resources.getString(R.string.compressed, output?.name.orEmpty())
                         OperationKind.EXTRACT -> resources.getString(R.string.extracted, output?.name.orEmpty())
+                        OperationKind.TRASH -> resources.getQuantityString(R.plurals.moved_to_bin, result.count, result.count)
+                        OperationKind.RESTORE -> resources.getQuantityString(R.plurals.restored, result.count, result.count)
                     }
                     val shown = snackbar.showSnackbar(
                         message,
-                        actionLabel = if (openable) resources.getString(R.string.open) else null,
+                        actionLabel = when {
+                            result.binned.isNotEmpty() -> resources.getString(R.string.undo)
+                            openable -> resources.getString(R.string.open)
+                            else -> null
+                        },
                         duration = SnackbarDuration.Short,
                     )
-                    if (shown == SnackbarResult.ActionPerformed && output != null) {
+                    if (shown == SnackbarResult.ActionPerformed && result.binned.isNotEmpty()) {
+                        operations.restore(result.binned)
+                    } else if (shown == SnackbarResult.ActionPerformed && output != null) {
                         onOpenFolder(if (output.isDirectory) output.path else output.parent ?: File("/").path)
                     }
                 }

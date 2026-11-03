@@ -23,6 +23,9 @@ class FileJob(
     @Volatile
     var cancelled = false
 
+    /** Says what is being worked on, for work done outside this class. */
+    fun announce(name: String) = onFile(name)
+
     /** Bytes that [copy], [move] (across storage), [zip] or [delete] will go through, for the progress bar. */
     fun totalBytes(sources: List<File>): Long = sources.sumOf { source ->
         source.walkTopDown().filter { it.isFile }.sumOf { it.length() }

@@ -71,7 +71,7 @@ class FileRepository(private val context: Context) {
         val children = dir.listFiles() ?: return@withContext Listing.Unreadable
         Listing.Loaded(
             children.asSequence()
-                .filter { showHidden || !it.name.startsWith(".") }
+                .filter { (showHidden || !it.name.startsWith(".")) && it.name != Bin.FOLDER }
                 .map(FileItem::from)
                 .sortedWith(sort)
                 .toList(),
@@ -88,7 +88,7 @@ class FileRepository(private val context: Context) {
         val found = mutableListOf<FileItem>()
         var lastEmit = 0
         File(root).walkTopDown()
-            .onEnter { showHidden || !it.name.startsWith(".") || it.absolutePath == root }
+            .onEnter { (showHidden || !it.name.startsWith(".") || it.absolutePath == root) && it.name != Bin.FOLDER }
             .forEach { file ->
                 currentCoroutineContext().ensureActive()
                 if (file.absolutePath == root || found.size >= MAX_RESULTS) return@forEach
@@ -111,10 +111,43 @@ class FileRepository(private val context: Context) {
             if (extensions.isEmpty()) return@withContext emptyList()
             val selection = extensions.joinToString(" OR ", prefix = "(", postfix = ")") { "${MediaStore.MediaColumns.DATA} LIKE ?" }
             val args = extensions.map { "%.$it" }.toTypedArray()
-            queryFiles(selection, args, limit = MAX_CATEGORY_ITEMS)
+            queryFiles(selection, args, limit = Int.MAX_VALUE)
                 .filter { showHidden || !it.path.contains("/.") }
                 .sortedWith(sort)
         }
+
+    /**
+     * Every photo or video on the phone, read from the media index in one go, so even tens of thousands load quickly
+     * and "select all" really means all. The index can lag behind, so each file is checked to still be there.
+     */
+    suspend fun media(category: FileCategory, showHidden: Boolean): List<MediaFile> = withContext(Dispatchers.IO) {
+        val extensions = category.extensions.toList()
+        val selection = extensions.joinToString(" OR ", prefix = "(", postfix = ")") { "${MediaStore.MediaColumns.DATA} LIKE ?" }
+        val args = extensions.map { "%.$it" }.toTypedArray()
+        val columns = arrayOf(
+            MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.SIZE, MediaStore.MediaColumns.DATE_MODIFIED, "duration",
+        )
+        val out = ArrayList<MediaFile>()
+        runCatching {
+            context.contentResolver.query(MediaStore.Files.getContentUri("external"), columns, selection, args, null)?.use { c ->
+                while (c.moveToNext()) {
+                    ensureActive()
+                    val path = c.getString(1) ?: continue
+                    if (!showHidden && path.contains("/.")) continue
+                    if (path.contains("/" + Bin.FOLDER + "/") || !File(path).exists()) continue
+                    val name = path.substringAfterLast('/')
+                    out += MediaFile(FileItem(path, name, false, c.getLong(2), c.getLong(3) * 1000), c.getLong(0), if (c.isNull(4)) 0 else c.getLong(4))
+                }
+            }
+        }
+        out
+    }
+
+    /** Everything in the Bins of all storage, latest first. */
+    suspend fun binEntries(): List<BinEntry> = withContext(Dispatchers.IO) { Bin.list(volumes().map { File(it.path) }) }
+
+    /** Clears out what has been in the Bin for too long. */
+    suspend fun purgeBin(): Int = withContext(Dispatchers.IO) { Bin.purgeExpired(volumes().map { File(it.path) }) }
 
     /** Files changed in the last [RECENT_DAYS] days, newest first, without hidden files and folders. */
     suspend fun recent(): List<FileItem> = withContext(Dispatchers.IO) {
@@ -226,6 +259,7 @@ class FileRepository(private val context: Context) {
             context.contentResolver.query(uri, columns, selection, args, order)?.use { cursor ->
                 while (cursor.moveToNext() && items.size < limit) {
                     val path = cursor.getString(0) ?: continue
+                    if (path.contains("/" + Bin.FOLDER + "/")) continue
                     val file = File(path)
                     if (file.isFile) items += FileItem.from(file)
                 }
@@ -243,7 +277,6 @@ class FileRepository(private val context: Context) {
     private companion object {
         const val MAX_RESULTS = 500
         const val EMIT_EVERY = 20
-        const val MAX_CATEGORY_ITEMS = 3000
         const val MAX_RECENT = 30
         const val RECENT_DAYS = 30
     }

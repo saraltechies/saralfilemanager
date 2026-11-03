@@ -62,6 +62,11 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - No `QUERY_ALL_PACKAGES`: the app lists launcher apps through a `<queries>` intent.
 - Data safety stays **No data collected**: the app list and usage are read on the device and never sent.
 
+## Permissions added in 1.2.0
+- `FOREGROUND_SERVICE_DATA_SYNC`: Play Console → App content → **Foreground service permissions** asks about it. Choose **Data sync**, and describe: "When the user copies, moves, compresses or extracts files, the work continues in the background so it isn't lost when they leave the app. It shows a notification with progress and Cancel, and stops when the work is done. Files stay on the device." It may ask for a video of this.
+- `POST_NOTIFICATIONS`: asked the first time a file operation runs, for that progress notification.
+- Data safety stays **No data collected**. The Bin is a hidden folder on the phone's own storage.
+
 ## Release
 - Countries: **all countries** (or start with India)
 - Track: **Internal testing** first, then **Production**
@@ -69,7 +74,18 @@ Play Console asks for this under **App content → Permissions declaration** (or
 - Upload key SHA-256 (for reference):
   `C1:38:DE:8B:78:5A:2E:32:28:06:6F:B0:9F:96:D3:A7:C6:80:7D:1C:2B:E1:DF:2C:72:63:9E:D0:F9:90:27:05`
 - Deobfuscation file: upload `mapping.txt` from the same build.
-- Release name: `1.1.1 (4)` (earlier: `1.1.0 (3)` was replaced while still in review, `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
+- Release name: `1.2.0 (5)` (earlier: `1.1.1 (4)`, `1.1.0 (3)` was replaced while still in review, `1.0.1 (2)`; 1.0.0 (1) was replaced while still in review)
+- Release notes for 1.2.0 (en-IN):
+  ```
+  <en-IN>
+  New: a real gallery, and a Bin.
+  • Thumbnails by date or album; pinch to change the size
+  • Select one, many or all: drag across photos, or tap a day
+  • View photos and play videos right here
+  • Deleted files stay in the Bin for 30 days, with Undo
+  • Long copies keep going after you leave the app
+  </en-IN>
+  ```
 - Release notes for 1.1.1 (en-IN), same as 1.1.0:
   ```
   <en-IN>

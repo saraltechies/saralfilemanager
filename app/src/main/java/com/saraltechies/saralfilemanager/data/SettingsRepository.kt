@@ -10,6 +10,8 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.saraltechies.saralfilemanager.files.FileItem
 import com.saraltechies.saralfilemanager.files.FileSort
+import com.saraltechies.saralfilemanager.files.Gallery
+import com.saraltechies.saralfilemanager.files.GallerySort
 import com.saraltechies.saralfilemanager.files.SortBy
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -28,12 +30,16 @@ data class ViewPrefs(
     val comparator: Comparator<FileItem> get() = FileSort.comparator(sortBy, descending)
 }
 
+data class GalleryPrefs(val columns: Int, val sort: GallerySort, val list: Boolean)
+
 class SettingsRepository(private val context: Context) {
 
     private val sortByKey = stringPreferencesKey("sort_by")
     private val descendingKey = booleanPreferencesKey("sort_descending")
     private val showHiddenKey = booleanPreferencesKey("show_hidden")
     private val gridKey = booleanPreferencesKey("grid")
+    private val useBinKey = booleanPreferencesKey("use_bin")
+    private val notificationAskedKey = booleanPreferencesKey("notification_asked")
     private val bookmarksKey = stringSetPreferencesKey("bookmarks")
     private val goodMomentsKey = intPreferencesKey("good_moments")
     private val reviewPromptsKey = intPreferencesKey("review_prompts")
@@ -63,6 +69,52 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGrid(grid: Boolean) {
         context.dataStore.edit { it[gridKey] = grid }
+    }
+
+    /** Deleted files go to the Bin first. On unless turned off. */
+    val useBin: Flow<Boolean> = context.dataStore.data.map { it[useBinKey] ?: true }.distinctUntilChanged()
+
+    suspend fun setUseBin(use: Boolean) {
+        context.dataStore.edit { it[useBinKey] = use }
+    }
+
+    /** Whether a category's list shows as a grid; follows the general choice until set for that category. */
+    fun categoryGrid(category: String): Flow<Boolean> = context.dataStore.data
+        .map { it[booleanPreferencesKey("grid_$category")] ?: it[gridKey] ?: false }.distinctUntilChanged()
+
+    suspend fun setCategoryGrid(category: String, grid: Boolean) {
+        context.dataStore.edit { it[booleanPreferencesKey("grid_$category")] = grid }
+    }
+
+    /** How the photos or the videos are shown; each keeps its own. */
+    fun galleryPrefs(category: String): Flow<GalleryPrefs> = context.dataStore.data.map { prefs ->
+        GalleryPrefs(
+            columns = Gallery.columns(prefs[intPreferencesKey("gallery_columns_$category")] ?: Gallery.DEFAULT_COLUMNS),
+            sort = GallerySort.entries.firstOrNull { it.name == prefs[stringPreferencesKey("gallery_sort_$category")] } ?: GallerySort.NEWEST,
+            list = prefs[booleanPreferencesKey("gallery_list_$category")] ?: false,
+        )
+    }.distinctUntilChanged()
+
+    suspend fun setGalleryColumns(category: String, columns: Int) {
+        context.dataStore.edit { it[intPreferencesKey("gallery_columns_$category")] = Gallery.columns(columns) }
+    }
+
+    suspend fun setGallerySort(category: String, sort: GallerySort) {
+        context.dataStore.edit { it[stringPreferencesKey("gallery_sort_$category")] = sort.name }
+    }
+
+    suspend fun setGalleryList(category: String, list: Boolean) {
+        context.dataStore.edit { it[booleanPreferencesKey("gallery_list_$category")] = list }
+    }
+
+    /** True once, the first time something asks to show a notification. */
+    suspend fun takeNotificationAsk(): Boolean {
+        var first = false
+        context.dataStore.edit {
+            first = it[notificationAskedKey] != true
+            it[notificationAskedKey] = true
+        }
+        return first
     }
 
     /** Folder paths pinned to the home screen. */

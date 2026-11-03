@@ -1,6 +1,5 @@
 package com.saraltechies.saralfilemanager.util
 
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
@@ -26,6 +25,9 @@ object FileIntents {
         if (chooser) Intent.createChooser(intent, null) else intent
     }
 
+    /** Android can only pass so many links between apps; well below that, to be safe on every phone. */
+    const val MAX_SHARE = 500
+
     fun share(context: Context, files: List<File>): Boolean = files.isNotEmpty() && attempt(context) {
         val uris = files.map { uri(context, it) }
         val types = files.map(::mimeType).distinct()
@@ -47,10 +49,8 @@ object FileIntents {
     private fun attempt(context: Context, build: () -> Intent): Boolean = try {
         context.startActivity(build().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         true
-    } catch (_: ActivityNotFoundException) {
-        false
-    } catch (_: IllegalArgumentException) {
-        // FileProvider can't make a link for this path (a folder outside shared storage).
+    } catch (_: RuntimeException) {
+        // No app for this, or more than Android can pass to one.
         false
     }
 }

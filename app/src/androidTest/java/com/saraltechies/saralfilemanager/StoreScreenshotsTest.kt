@@ -79,6 +79,9 @@ class StoreScreenshotsTest {
             click(s(R.string.category_images))
             settle(3_000)
             shot("6-images")
+            click(s(R.string.gallery_albums))
+            settle(2_000)
+            shot("7-albums")
         }
     }
 

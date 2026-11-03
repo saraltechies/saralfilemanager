@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -60,20 +61,31 @@ fun FileCategory.icon(): ImageVector = when (this) {
 @Composable
 fun FileIcon(item: FileItem, selected: Boolean, size: Dp = 40.dp, rounded: Boolean = false) {
     val shape = if (rounded) RoundedCornerShape(12.dp) else CircleShape
+    val context = LocalContext.current
+    val category = item.category
+    val sizePx = with(LocalDensity.current) { size.roundToPx() }
+    val thumbnail by produceState(Thumbnails.cached(item.path, item.lastModified, sizePx), item.path, item.lastModified, sizePx) {
+        if (value == null && !item.isDirectory && Thumbnails.supports(category)) {
+            value = Thumbnails.load(context, item.file, item.lastModified, category, sizePx)
+        }
+    }
+    val preview = thumbnail
+    if (preview != null) {
+        // A photo stays visible while selected, so you can see what you've picked.
+        Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+            Image(preview, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(size).clip(shape))
+            if (selected) {
+                Box(Modifier.size(size).clip(shape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
+        }
+        return
+    }
     if (selected) {
         Box(Modifier.size(size).clip(shape).background(MaterialTheme.colorScheme.primary), contentAlignment = Alignment.Center) {
             Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
         }
-        return
-    }
-    val category = item.category
-    val sizePx = with(LocalDensity.current) { size.roundToPx() }
-    val thumbnail by produceState<ImageBitmap?>(null, item.path, item.lastModified, sizePx) {
-        value = if (!item.isDirectory && Thumbnails.supports(category)) Thumbnails.load(item.file, category, sizePx) else null
-    }
-    val preview = thumbnail
-    if (preview != null) {
-        Image(preview, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(size).clip(shape))
         return
     }
     val (icon, tint) = if (item.isDirectory) Icons.Filled.Folder to MaterialTheme.colorScheme.primary else category.icon() to category.color()
