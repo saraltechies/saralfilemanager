@@ -60,10 +60,6 @@ class AppCheckTest {
             compose.onAllNodes(isRoot()).onFirst().performTouchInput { swipeUp() }
             settle()
             shot("tour-02-home-lower")
-            click(s(R.string.more_options))
-            shot("tour-03-home-menu")
-            back()
-
             listOf(
                 R.string.category_images to "images",
                 R.string.category_videos to "videos",
@@ -90,6 +86,7 @@ class AppCheckTest {
             back()
 
             click(s(R.string.more_options))
+            shot("tour-03-home-menu")
             click(s(R.string.bin_title))
             settle(2_000)
             shot("tour-22-bin")
@@ -98,9 +95,6 @@ class AppCheckTest {
             clickTile(s(R.string.folder_camera))
             settle(2_000)
             shot("tour-30-folder")
-            click(s(R.string.more_options))
-            shot("tour-31-folder-menu")
-            back()
             click(s(R.string.search))
             settle()
             shot("tour-32-search")
@@ -143,10 +137,13 @@ class AppCheckTest {
             shot("$tag-2-viewer")
             val play = hasContentDescription(s(R.string.viewer_play)) and hasClickAction()
             waitFor(play)
-            compose.onAllNodes(play).onFirst().performClick()
+            val width = compose.onAllNodes(isRoot()).onFirst().fetchSemanticsNode().boundsInRoot.width
+            fun onScreen() = compose.onAllNodes(play).fetchSemanticsNodes().indexOfFirst { n -> n.boundsInRoot.center.x in 0f..width }
+            compose.onAllNodes(play)[onScreen()].performClick()
             // The test framework only updates the screen while it's waiting, so a plain sleep wouldn't start the video.
             settle(3_000)
-            assertTrue("The play button should go away", compose.onAllNodes(play).fetchSemanticsNodes().isEmpty())
+            shot("$tag-2b-after-play")
+            assertTrue("The play button should go away", onScreen() < 0)
             val a = takeShot("$tag-3-playing-a")
             Thread.sleep(3_000)
             val b = takeShot("$tag-4-playing-b")
@@ -320,6 +317,7 @@ class AppCheckTest {
         scan(paths, minutes = 8)
         log("big: media scan took ${System.currentTimeMillis() - scanStart} ms")
 
+        try {
         ActivityScenario.launch(MainActivity::class.java).use {
             settle(2_000)
             val runtime = Runtime.getRuntime()
@@ -352,6 +350,7 @@ class AppCheckTest {
             // The same 4,000 files in the folder view.
             clickStorageCard()
             settle(1_500)
+            scrollToFolder("Pictures")
             click("Pictures")
             settle(1_500)
             timed("big: open a folder of 4,000 files") {
@@ -368,7 +367,9 @@ class AppCheckTest {
             settle(1_000)
             shot("big-5-folder-scrolled")
         }
-        dir.deleteRecursively()
+        } finally {
+            dir.deleteRecursively()
+        }
     }
 
     private fun scrollToFolder(name: String) {

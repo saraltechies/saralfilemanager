@@ -50,12 +50,11 @@ instrument video-odd-name "$CHECK#videoWithOddNamePlays"
 instrument drag "$CHECK#dragSelectsInSmallSteps"
 instrument awkward-files "$CHECK#awkwardFiles"
 instrument rebuilt "$CHECK#selectionAndViewerSurviveBeingRebuilt"
+instrument varied-files com.saraltechies.saralfilemanager.StoreScreenshotsTest
 instrument big-library "$CHECK#bigLibraryAndBigFolder"
 adb shell dumpsys gfxinfo "$DEBUG" > "$OUT/gfxinfo-debug.txt" 2>&1 || true
 adb shell dumpsys meminfo "$DEBUG" > "$OUT/meminfo-debug.txt" 2>&1 || true
 
-# Leaves a varied set of invented files on the phone for the random tapping below, and gets store-style pictures.
-instrument varied-files com.saraltechies.saralfilemanager.StoreScreenshotsTest
 adb pull "/sdcard/Android/data/$DEBUG/files/check/." "$OUT/check/" || true
 adb pull "/sdcard/Android/data/$DEBUG/files/screenshots/." "$OUT/screens/" || true
 
