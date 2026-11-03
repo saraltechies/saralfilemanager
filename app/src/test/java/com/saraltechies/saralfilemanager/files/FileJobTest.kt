@@ -106,6 +106,60 @@ class FileJobTest {
         assertFalse(File(tmp.root.parentFile, "escaped.txt").exists())
     }
 
+    private fun moveAcrossStorage(onFile: (String) -> Unit = {}) = FileJob(onFile = onFile, rename = { _, _ -> false })
+
+    @Test fun moveAcrossStorageCopiesThenRemovesTheOriginal() {
+        val source = tree()
+        val dest = tmp.newFolder("elsewhere")
+        val moved = moveAcrossStorage().move(listOf(source), dest).single()
+        assertFalse(source.exists())
+        assertEquals(source.name, moved.name)
+        assertTrue(moved.walkTopDown().any { it.isFile })
+    }
+
+    @Test fun moveKeepsTheOriginalWhenTheCopyIsIncomplete() {
+        val source = tmp.newFolder("incomplete")
+        File(source, "a.txt").writeText("first")
+        File(source, "b.txt").writeText("second")
+        val dest = tmp.newFolder("elsewhere2")
+        // Each file goes missing once the next one starts, as with storage that fails quietly.
+        var previous: String? = null
+        val job = moveAcrossStorage { name ->
+            previous?.let { File(dest, "incomplete/$it").delete() }
+            previous = name
+        }
+        assertThrows(java.io.IOException::class.java) { job.move(listOf(source), dest) }
+        assertEquals("first", File(source, "a.txt").readText())
+        assertEquals("second", File(source, "b.txt").readText())
+        assertFalse(File(dest, "incomplete").exists())
+    }
+
+    @Test fun cancellingACopyRemovesTheHalfMadeFolder() {
+        val source = tree()
+        val dest = tmp.newFolder("cancelled")
+        lateinit var job: FileJob
+        job = FileJob(onFile = { job.cancelled = true })
+        assertThrows(CancellationException::class.java) { job.copy(listOf(source), dest) }
+        assertEquals(0, dest.listFiles()!!.size)
+        assertTrue(source.exists())
+    }
+
+    @Test fun extractingABrokenZipLeavesNothingBehind() {
+        val zip = tmp.newFile("broken.zip").apply { writeBytes(ByteArray(2_000) { it.toByte() }) }
+        val dest = tmp.newFolder("unzipped")
+        assertThrows(java.io.IOException::class.java) { FileJob().extract(zip, dest) }
+        assertEquals(0, dest.listFiles()!!.size)
+    }
+
+    @Test fun zipsSameNamedFilesFromDifferentFolders() {
+        val one = File(tmp.newFolder("one"), "photo.jpg").apply { writeText("from one") }
+        val two = File(tmp.newFolder("two"), "photo.jpg").apply { writeText("from two") }
+        val zip = File(tmp.root, "both.zip")
+        FileJob().zip(listOf(one, two), zip)
+        val out = FileJob().extract(zip, tmp.newFolder("both-out"))
+        assertEquals(setOf("from one", "from two"), out.listFiles()!!.map { it.readText() }.toSet())
+    }
+
     @Test fun zipPathsRejectEscapes() {
         val root = tmp.newFolder("Root")
         assertNull(ZipPaths.target(root, "../x"))

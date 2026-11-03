@@ -48,7 +48,7 @@ sealed interface OperationResult {
     data class Cancelled(override val kind: OperationKind) : OperationResult
     data class Failed(override val kind: OperationKind, val reason: Reason) : OperationResult
 
-    enum class Reason { INTO_ITSELF, NO_SPACE, NOT_ALLOWED, OTHER }
+    enum class Reason { INTO_ITSELF, NO_SPACE, NOT_ALLOWED, BUSY, OTHER }
 }
 
 /** What Copy or Cut put aside, waiting for Paste. */
@@ -86,16 +86,19 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
 
     fun paste(destDir: String) {
         val clip = _clip.value ?: return
+        // A cut stays ready to paste until there's room to do it.
+        if (refuseWhileBusy(if (clip.move) OperationKind.MOVE else OperationKind.COPY)) return
         val sources = clip.paths.map(::File).filter { it.exists() }
         if (clip.move) _clip.value = null
         val dest = File(destDir)
         if (clip.move) {
             // Renames within a volume are instant; only a move to another storage copies bytes.
-            start(OperationKind.MOVE, sources, measure = { job -> if (sameVolume(sources, dest)) 0L else job.totalBytes(sources) }) {
+            val across = !sameVolume(sources, dest)
+            start(OperationKind.MOVE, sources, measure = { job -> if (across) job.totalBytes(sources) else 0L }, long = across) {
                 it.move(sources, dest)
             }
         } else {
-            start(OperationKind.COPY, sources, measure = { it.totalBytes(sources) }) { it.copy(sources, dest) }
+            start(OperationKind.COPY, sources, measure = { it.totalBytes(sources) }, long = true) { it.copy(sources, dest) }
         }
     }
 
@@ -160,7 +163,7 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
     fun zip(paths: List<String>, destDir: String, zipName: String) {
         val sources = paths.map(::File)
         val zipFile = File(destDir, FileNames.unique(zipName, isDirectory = false) { File(destDir, it).exists() })
-        start(OperationKind.ZIP, sources, measure = { it.totalBytes(sources) }) {
+        start(OperationKind.ZIP, sources, measure = { it.totalBytes(sources) }, long = true) {
             it.zip(sources, zipFile)
             listOf(zipFile)
         }
@@ -168,7 +171,7 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
 
     fun extract(zipPath: String, destDir: String) {
         val zip = File(zipPath)
-        start(OperationKind.EXTRACT, listOf(zip), measure = { it.zipContentBytes(zip) }) {
+        start(OperationKind.EXTRACT, listOf(zip), measure = { it.zipContentBytes(zip) }, long = true) {
             listOf(it.extract(zip, File(destDir)))
         }
     }
@@ -188,14 +191,21 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
         sources: List<File>,
         measure: (FileJob) -> Long,
         binned: List<BinEntry> = emptyList(),
+        /** Likely to take a while, so the notification shows at once. */
+        long: Boolean = false,
         work: (FileJob) -> List<File>,
     ) {
-        if (_progress.value != null || sources.isEmpty()) return
+        if (refuseWhileBusy(kind) || sources.isEmpty()) return
         _progress.value = OperationProgress(kind, sources.size, "", 0, 0)
-        // Work that goes on for more than a moment shows a notification, so Android lets it finish after you leave the app.
-        scope.launch {
-            delay(SERVICE_DELAY_MS)
-            if (_progress.value != null) FileOperationService.start(context)
+        // Work that goes on for more than a moment shows a notification, so Android lets it finish after you leave the
+        // app. Android only allows starting it while the app is open, so long work can't wait to see how it goes.
+        if (long) {
+            FileOperationService.start(context)
+        } else {
+            scope.launch {
+                delay(SERVICE_DELAY_MS)
+                if (_progress.value != null) FileOperationService.start(context)
+            }
         }
         scope.launch(Dispatchers.IO) {
             var done = 0L
@@ -233,6 +243,9 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
             } catch (e: IOException) {
                 val noSpace = e.message?.contains("ENOSPC") == true || e.message?.contains("No space", ignoreCase = true) == true
                 OperationResult.Failed(kind, if (noSpace) OperationResult.Reason.NO_SPACE else OperationResult.Reason.OTHER)
+            } catch (_: Exception) {
+                // Such as a zip with a badly formed name inside: say it failed rather than close the app.
+                OperationResult.Failed(kind, OperationResult.Reason.OTHER)
             } finally {
                 running = null
                 _progress.value = null
@@ -243,6 +256,13 @@ class FileOperations(private val context: Context, private val scope: CoroutineS
             _results.emit(result)
             if (scanAndWait(changed)) _changes.update { it + 1 }
         }
+    }
+
+    /** One thing runs at a time. True, after saying so, if something is running. */
+    private fun refuseWhileBusy(kind: OperationKind): Boolean {
+        if (_progress.value == null) return false
+        _results.tryEmit(OperationResult.Failed(kind, OperationResult.Reason.BUSY))
+        return true
     }
 
     private fun sameVolume(sources: List<File>, dest: File): Boolean {

@@ -67,7 +67,7 @@ object Thumbnails {
                     decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 }
             } else {
-                decodeSampled(file, maxPx)?.let { upright(file, it) }
+                decodeToFit(file, maxPx)?.let { upright(file, it) }
             }
         }.getOrNull()?.asImageBitmap()
     }
@@ -130,6 +130,16 @@ object Thumbnails {
         } else {
             decodeSampled(file, size)?.let { upright(file, it) }
         }
+
+    /** Longest side at most [maxPx], as Android refuses to draw a picture that's too big. */
+    private fun decodeToFit(file: File, maxPx: Int): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / sample > maxPx) sample *= 2
+        return BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = sample })
+    }
 
     private fun decodeSampled(file: File, sizePx: Int): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }

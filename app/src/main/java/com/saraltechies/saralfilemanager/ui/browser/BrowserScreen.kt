@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -108,10 +109,16 @@ fun BrowserScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var selected by rememberSelection()
 
+    // A reload of this folder keeps showing it, but another folder never shows this one's files under its name.
+    val listedPath = remember { arrayOf<String?>(null) }
     val listing by produceState<Listing>(Listing.Loading, path, prefs, changes) {
+        if (listedPath[0] != path) value = Listing.Loading
         value = files.list(path, prefs.showHidden, prefs.comparator)
+        listedPath[0] = path
     }
+    var searchFinished by remember { mutableStateOf(false) }
     val results by produceState<List<FileItem>?>(null, searching, query, path, prefs.showHidden, changes) {
+        searchFinished = false
         if (!searching || query.isBlank()) {
             value = null
             return@produceState
@@ -119,11 +126,18 @@ fun BrowserScreen(
         delay(SEARCH_DELAY_MS)
         value = emptyList()
         files.search(path, query, prefs.showHidden).collect { value = it }
+        searchFinished = true
     }
     val shown: List<FileItem> = results ?: (listing as? Listing.Loaded)?.items.orEmpty()
 
-    // Selection belongs to the folder it was made in.
-    LaunchedEffect(path) { selected = emptySet() }
+    // Selection belongs to the folder it was made in, and stays when the phone turns.
+    var selectionFolder by rememberSaveable { mutableStateOf(path) }
+    LaunchedEffect(path) {
+        if (selectionFolder != path) {
+            selectionFolder = path
+            selected = emptySet()
+        }
+    }
 
     BackHandler(enabled = selected.isNotEmpty() || searching || path != root) {
         when {
@@ -145,7 +159,8 @@ fun BrowserScreen(
             name = zip.name,
             onExtract = {
                 zipToOpen = null
-                operations.extract(zip.path, path)
+                // Next to the zip, which in search results can be in a folder below this one.
+                operations.extract(zip.path, zip.file.parent ?: path)
             },
             onOpenWith = {
                 zipToOpen = null
@@ -264,6 +279,7 @@ fun BrowserScreen(
             }
             val found = results
             when {
+                found != null && found.isEmpty() && !searchFinished -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 found != null && found.isEmpty() -> Message(stringResource(R.string.search_nothing_found, query))
                 found != null -> FileList(shown, prefs.grid, selected, onClick, onLongClick, bodyPadding, showFolder = true)
                 searching && query.isBlank() -> Message(stringResource(R.string.search_hint, File(path).name.ifEmpty { rootName }))
@@ -372,7 +388,8 @@ private fun SearchTopBar(query: String, onQueryChange: (String) -> Unit, onClose
 
 @Composable
 private fun Message(text: String) {
-    Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+    // Above the keyboard, as these messages also show while searching.
+    Box(Modifier.fillMaxSize().imePadding().padding(32.dp), contentAlignment = Alignment.Center) {
         Text(
             text,
             style = MaterialTheme.typography.bodyLarge,

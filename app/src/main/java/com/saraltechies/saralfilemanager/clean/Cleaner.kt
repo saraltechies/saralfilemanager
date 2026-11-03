@@ -24,6 +24,15 @@ data class CleanSuggestion(val kind: CleanKind, val groups: List<List<FileItem>>
     /** What deleting the ticked files frees, or for a list with nothing ticked, everything it lists. */
     val freeableBytes: Long
         get() = if (preselected.isEmpty()) totalBytes else files.filter { it.path in preselected }.sumOf { it.size }
+
+    /** [ticked] without anything that would remove the last copy of a duplicate. Other lists are the person's choice. */
+    fun keepingOneCopy(ticked: Set<String>): Set<String> {
+        if (kind != CleanKind.DUPLICATES) return ticked
+        return ticked - groups.filter { group -> group.all { it.path in ticked } }.map { it.first().path }.toSet()
+    }
+
+    /** Everything that can be ticked at once. */
+    val selectable: Set<String> get() = keepingOneCopy(files.map { it.path }.toSet())
 }
 
 /** Finds files worth removing: copies, very large files, old screenshots and downloads. Nothing is deleted here. */
